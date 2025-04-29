@@ -16,9 +16,9 @@ public class ApplicantApplicationController {
     @Autowired
     private ApplicantApplicationService applicationService;
 
-    @PostMapping
-    public ResponseEntity<ApplicantApplication> createApplication(@RequestBody ApplicantApplication application) {
-        ApplicantApplication createdApplication = applicationService.createApplication(application);
+    @PostMapping("/applicant/{applicantId}")
+    public ResponseEntity<ApplicantApplication> createApplication(@PathVariable Long applicantId, @RequestBody ApplicantApplication application) {
+        ApplicantApplication createdApplication = applicationService.createApplicationForApplicant(applicantId, application);
         return ResponseEntity.ok(createdApplication);
     }
 
@@ -49,5 +49,14 @@ public class ApplicantApplicationController {
     public ResponseEntity<Void> deleteApplication(@PathVariable Long id) {
         applicationService.deleteApplication(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/applicant/{applicantId}")
+    public ResponseEntity<List<ApplicantApplication>> getApplicationsByApplicantId(@PathVariable Long applicantId) {
+        List<ApplicantApplication> applications = applicationService.getApplicationsByApplicantId(applicantId);
+        if (applications.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(applications);
     }
 }
