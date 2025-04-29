@@ -5,7 +5,6 @@ import java.util.Date;
 import lombok.Data;
 
 @Data
-
 @Entity
 public class Document {
 
@@ -26,5 +25,8 @@ public class Document {
 
     private String fileName;
 
-    // Getters and setters...
+    private String fileType;
+
+    private Long fileSize;
+
 }
