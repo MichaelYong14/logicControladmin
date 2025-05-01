@@ -27,5 +27,7 @@ public class Evaluator {
 
     private String password;
 
+    private boolean isAdmin;
+
     // Getters and setters...
 }
