@@ -1,20 +1,30 @@
 import React, { useState } from "react";
-import MinimalLayout from "../../templates/MinimalLayout";
 import LoginForm from "../../components/Login/LoginForm";
-import backgroundImage from "../../assets/login-bg.png";
 import logo from "../../assets/logo.png";
-import { Stack } from "@mui/material";
-import SetUpProfile from "../../components/Login/SetUpProfile";
+import { Stack, Box } from "@mui/material";
 import useResponseHandler from "../../utils/useResponseHandler";
+import SplashLayout from "../../templates/SplashLayout";
 
 const LoginPage = () => {
   const [view, setView] = useState("login"); // login | signup | setupProfile
   const { handleSuccess, handleError, snackbar } = useResponseHandler();
 
   return (
-    <MinimalLayout backgroundImage={backgroundImage}>
-      <Stack alignItems="center" spacing={2}>
-        <img src={logo} alt="Logo" />
+    <SplashLayout>
+      {/* Logo at top-left */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 32,
+          left: 32,
+          width: 100, // adjust size
+        }}
+      >
+        <img src={logo} alt="Logo" style={{ width: "100%" }} />
+      </Box>
+
+      {/* Centered content */}
+      <Stack alignItems="center" spacing={4} maxWidth={"60%"}>
         {view === "login" && (
           <LoginForm
             setView={setView}
@@ -30,12 +40,10 @@ const LoginPage = () => {
             handleError={handleError}
           />
         )}
-        {view === "setupProfile" && (
-          <SetUpProfile handleSuccess={handleSuccess} />
-        )}
       </Stack>
+
       {snackbar}
-    </MinimalLayout>
+    </SplashLayout>
   );
 };
 

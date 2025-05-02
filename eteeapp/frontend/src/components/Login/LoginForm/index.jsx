@@ -109,13 +109,20 @@ const LoginForm = ({
 
   return (
     <>
-      {" "}
-      <StyledPaper elevation={6}>
-        <Typography variant="h5" textAlign="center" fontWeight="bold">
-          {currentFormType === "login" ? "Login Form" : "Signup Form"}
+      <Stack gap={4}>
+        <Typography
+          variant="h5"
+          textAlign="left"
+          fontWeight="bold"
+          sx={{ color: "#FED600" }}
+        >
+          Empowering Every Task, Elevating Every Experience.
         </Typography>
+        {/* <Typography variant="h5" textAlign="center" fontWeight="bold">
+          {currentFormType === "login" ? "Login Form" : "Signup Form"}
+        </Typography> */}
 
-        <Stack direction="row" justifyContent="center">
+        {/* <Stack direction="row" justifyContent="center">
           <ToggleButtonGroup
             value={currentFormType}
             exclusive
@@ -125,13 +132,13 @@ const LoginForm = ({
             <StyledToggleButton value="login">Login</StyledToggleButton>
             <StyledToggleButton value="signup">Signup</StyledToggleButton>
           </ToggleButtonGroup>
-        </Stack>
+        </Stack> */}
         <Stack gap={2}>
           <form onSubmit={handleSubmit(onSubmit)} noValidate>
             <StyledTextField
               type="email"
               fullWidth
-              placeholder="Enter your email"
+              placeholder="Email Address"
               variant="outlined"
               size="small"
               {...register("email")}
@@ -142,7 +149,7 @@ const LoginForm = ({
             <StyledTextField
               type="password"
               fullWidth
-              placeholder="Enter your password"
+              placeholder="Password"
               variant="outlined"
               size="small"
               {...register("password")}
@@ -163,7 +170,7 @@ const LoginForm = ({
               />
             )}
 
-            <Stack direction="row" justifyContent="flex-start">
+            <Stack direction="row" justifyContent="flex-end" mb={1}>
               {currentFormType === "login" && (
                 <Link href="#" variant="body2" sx={{ color: "black" }}>
                   Forgot password?
@@ -175,26 +182,28 @@ const LoginForm = ({
               type="submit"
               variant="contained"
               fullWidth
-              sx={{ backgroundColor: "#800000", borderRadius: "20px" }}
+              sx={{
+                backgroundColor: "#800000",
+                borderRadius: "8px",
+              }}
             >
               {currentFormType === "login" ? "Login" : "Signup"}
             </Button>
           </form>
         </Stack>
-      </StyledPaper>
+      </Stack>
     </>
   );
 };
 
 export const StyledTextField = styled(TextField)({
   marginBottom: 8,
-  backgroundColor: "#D9D9D9",
-  borderRadius: "12px",
+  borderRadius: "4px",
   "& .MuiOutlinedInput-root": {
-    borderRadius: "12px",
+    borderRadius: "4px",
   },
   "& .MuiOutlinedInput-notchedOutline": {
-    borderRadius: "12px",
+    borderRadius: "4px",
   },
 });
 
