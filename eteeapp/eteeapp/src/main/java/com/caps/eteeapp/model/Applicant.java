@@ -12,7 +12,11 @@ public class Applicant {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long applicantId;
 
-    private String name;
+    private String firstName;
+
+    private String middleInitial;
+
+    private String lastName;
 
     @Column(unique = true)
     private String email;
