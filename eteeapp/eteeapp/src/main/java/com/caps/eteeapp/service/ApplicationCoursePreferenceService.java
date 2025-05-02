@@ -29,4 +29,9 @@ public class ApplicationCoursePreferenceService {
     public void deletePreference(Long id) {
         preferenceRepository.deleteById(id);
     }
+
+    public ApplicationCoursePreference updatePreferenceStatus(ApplicationCoursePreference preference, ApplicationCoursePreference.Status status) {
+        preference.setStatus(status);
+        return preferenceRepository.save(preference);
+    }
 }

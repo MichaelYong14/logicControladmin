@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -32,5 +33,17 @@ public class ApplicationCoursePreferenceController {
     public ResponseEntity<Void> deletePreference(@PathVariable Long id) {
         preferenceService.deletePreference(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{preferenceId}/update-status")
+    public ResponseEntity<ApplicationCoursePreference> updatePreferenceStatus(
+            @PathVariable Long preferenceId,
+            @RequestParam ApplicationCoursePreference.Status status) {
+        Optional<ApplicationCoursePreference> preference = preferenceService.getPreferenceById(preferenceId);
+        if (preference.isPresent()) {
+            ApplicationCoursePreference updatedPreference = preferenceService.updatePreferenceStatus(preference.get(), status);
+            return ResponseEntity.ok(updatedPreference);
+        }
+        return ResponseEntity.status(404).body(null); // Not Found if preferenceId does not exist
     }
 }
