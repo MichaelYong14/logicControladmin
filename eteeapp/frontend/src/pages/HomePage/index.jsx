@@ -27,6 +27,20 @@ const StartButton = styled(Button)(({ theme }) => ({
   }
 }));
 
+const ShowcaseButton = styled(Button)(({ theme }) => ({
+  backgroundColor: "#1976D2",
+  color: "#fff",
+  fontWeight: "bold",
+  borderRadius: "20px",
+  padding: "12px 24px",
+  fontSize: 16,
+  textTransform: "none",
+  width: 256,
+  "&:hover": {
+    backgroundColor: "#115293",
+  }
+}));
+
 const Homepage = () => {
   const navigate = useNavigate();
   const [username, setUsername] = useState("Username");
@@ -46,13 +60,18 @@ const Homepage = () => {
     handleSuccess("Navigated to course preference page!");
   };
 
+  const handleProgramShowcase = () => {
+    navigate("/program-showcase");
+    handleSuccess("Viewing program showcase!");
+  };
+
   return (
     <MinimalLayout backgroundImage={backgroundImage}>
       <Stack alignItems="center" spacing={4} sx={{ position: "relative" }}>
-        {/* Logo at the top */}
+        {/* Logo */}
         <img src={logo} alt="Logo" />
         
-        {/* Main content */}
+        {/* Welcome Section */}
         <Box 
           sx={{ 
             textAlign: "center", 
@@ -81,6 +100,31 @@ const Homepage = () => {
               Start your Application
             </StartButton>
           </Stack>
+        </Box>
+
+        {/* Program Showcase Section */}
+        <Box 
+          sx={{ 
+            textAlign: "center",
+            backgroundColor: "rgba(25, 118, 210, 0.2)",
+            borderRadius: 4,
+            p: 4,
+            maxWidth: 600,
+            width: "100%"
+          }}
+        >
+          <Typography variant="h5" fontWeight="bold" gutterBottom color="black">
+            🎓 Explore Our Program Showcase
+          </Typography>
+          <Typography variant="body2" gutterBottom>
+            Learn more about ETEEAP and how it helps working professionals earn a degree through competency-based education.
+          </Typography>
+          <ShowcaseButton 
+            onClick={handleProgramShowcase}
+            variant="contained"
+          >
+            View Program Showcase
+          </ShowcaseButton>
         </Box>
       </Stack>
       {snackbar}

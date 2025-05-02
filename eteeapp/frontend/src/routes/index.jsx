@@ -7,6 +7,7 @@ import Homepage from "../pages/HomePage";
 import ProtectedRoute from "./ProtectedRoutes";
 import ApplicationTrack from "../pages/ApplicationTrack";
 import ApplicationForm from "../pages/AppCoursePreference";
+import ProgramShowcase from "../pages/ProgramShowcase";
 
 const AppRoutes = () => {
   return useRoutes([
@@ -27,6 +28,14 @@ const AppRoutes = () => {
       element: (
         <ProtectedRoute>
           <Homepage />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/program-showcase",
+      element: (
+        <ProtectedRoute>
+          <ProgramShowcase />
         </ProtectedRoute>
       ),
     },
