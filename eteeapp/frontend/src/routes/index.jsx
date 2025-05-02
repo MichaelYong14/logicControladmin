@@ -5,6 +5,7 @@ import LoginPage from "../pages/LoginPage";
 import SetUpProfilePage from "../pages/SetUpProfile";
 import Homepage from "../pages/HomePage";
 import ProtectedRoute from "./ProtectedRoutes";
+import AppCoursePreference from "../pages/AppCoursePreference";
 
 const AppRoutes = () => {
   const routes = useRoutes([
@@ -25,6 +26,15 @@ const AppRoutes = () => {
       element: (
         <ProtectedRoute>
           <Homepage />
+        </ProtectedRoute>
+      ),
+    },
+
+    {
+      path: "/AppCoursePreference",
+      element: (
+        <ProtectedRoute>
+          <AppCoursePreference />
         </ProtectedRoute>
       ),
     },
