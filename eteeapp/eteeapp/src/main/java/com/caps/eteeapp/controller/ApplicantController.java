@@ -1,14 +1,23 @@
 package com.caps.eteeapp.controller;
 
-import com.caps.eteeapp.model.Applicant;
-import com.caps.eteeapp.service.ApplicantService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
 import java.util.Optional;
 
-@CrossOrigin(origins = "*")
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.caps.eteeapp.model.Applicant;
+import com.caps.eteeapp.service.ApplicantService;
+
+@CrossOrigin(origins = "http://localhost:3000") // Allow requests from the frontend
 @RestController
 @RequestMapping("/api/applicants")
 public class ApplicantController {
@@ -54,6 +63,15 @@ public class ApplicantController {
         if (applicant.isPresent()) {
             Applicant updated = applicantService.updateApplicant(applicant.get(), updatedApplicant);
             return ResponseEntity.ok(updated);
+        }
+        return ResponseEntity.status(404).body(null); // Not Found if applicantId does not exist
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Applicant> getApplicantById(@PathVariable Long id) {
+        Optional<Applicant> applicant = applicantService.findApplicantById(id);
+        if (applicant.isPresent()) {
+            return ResponseEntity.ok(applicant.get());
         }
         return ResponseEntity.status(404).body(null); // Not Found if applicantId does not exist
     }

@@ -15,7 +15,8 @@ import {
   Dialog,
   DialogTitle,
   DialogContent,
-  DialogActions
+  DialogActions,
+  Modal
 } from "@mui/material";
 import { UploadFile } from "@mui/icons-material";
 import axios from "axios";
@@ -74,6 +75,39 @@ const StyledTextField = styled(TextField)({
   }
 });
 
+// Styled components for the success modal
+const SuccessModal = styled(Modal)({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+});
+
+const SuccessModalContent = styled(Box)(({ theme }) => ({
+  backgroundColor: "white",
+  borderRadius: 16,
+  boxShadow: theme.shadows[5],
+  padding: theme.spacing(4),
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  width: "100%",
+  maxWidth: 400,
+  textAlign: "center",
+}));
+
+const TrackButton = styled(Button)(({ theme }) => ({
+  backgroundColor: "#ffde00",
+  color: "black",
+  borderRadius: 20,
+  padding: "10px 30px",
+  fontSize: 16,
+  fontWeight: "bold",
+  textTransform: "none",
+  "&:hover": {
+    backgroundColor: "#e6c800",
+  }
+}));
+
 const ApplicationForm = () => {
   const navigate = useNavigate();
   const { handleSuccess, handleError, snackbar } = useResponseHandler();
@@ -89,6 +123,8 @@ const ApplicationForm = () => {
   const [courseDialogOpen, setCourseDialogOpen] = useState(false);
   const [currentPriorityIndex, setCurrentPriorityIndex] = useState(null);
   const [selectedCourse, setSelectedCourse] = useState(null);
+  // Add state for success modal
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
 
   const priorityOrders = ["FIRST", "SECOND", "THIRD"];
 
@@ -262,19 +298,13 @@ const ApplicationForm = () => {
     handleSuccess("File uploaded successfully!");
   };
 
-  const handleSubmit = async () => {
-    try {
-      // Update application status to SUBMITTED
-      await axios.put(`http://localhost:8080/api/applications/${applicationId}`, {
-        status: "SUBMITTED"
-      });
-      
-      handleSuccess("Application submitted successfully!");
-      navigate("/confirmation");
-    } catch (error) {
-      console.error("Submit error:", error);
-      handleError("Failed to submit application. Please try again.");
-    }
+  const handleSubmit = () => {
+    navigate("/ApplicationTrack");
+  };
+
+  const handleTrackApplication = () => {
+    setSuccessModalOpen(false);
+    navigate("/ApplicationTrack");
   };
 
   // Get the course name for a given priority
@@ -432,6 +462,26 @@ const ApplicationForm = () => {
           </Button>
         </DialogActions>
       </Dialog>
+      
+      {/* Success Modal */}
+      <SuccessModal
+        open={successModalOpen}
+        aria-labelledby="success-modal-title"
+        aria-describedby="success-modal-description"
+      >
+        <SuccessModalContent>
+          <img src={logo} alt="Logo" style={{ height: 40, marginBottom: 16 }} />
+          <Typography variant="h6" id="success-modal-title" sx={{ mb: 2 }}>
+            Hi, {userData.name.split(' ')[0]}. You already submitted an application.
+          </Typography>
+          <Typography variant="body2" id="success-modal-description" sx={{ mb: 3 }}>
+            Click here to
+          </Typography>
+          <TrackButton onClick={handleTrackApplication}>
+            Track your Application
+          </TrackButton>
+        </SuccessModalContent>
+      </SuccessModal>
       
       {snackbar}
     </MinimalLayout>

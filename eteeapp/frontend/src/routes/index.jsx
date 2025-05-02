@@ -5,10 +5,11 @@ import LoginPage from "../pages/LoginPage";
 import SetUpProfilePage from "../pages/SetUpProfile";
 import Homepage from "../pages/HomePage";
 import ProtectedRoute from "./ProtectedRoutes";
-import AppCoursePreference from "../pages/AppCoursePreference";
+import ApplicationTrack from "../pages/ApplicationTrack";
+import ApplicationForm from "../pages/AppCoursePreference";
 
 const AppRoutes = () => {
-  const routes = useRoutes([
+  return useRoutes([
     {
       path: "/login",
       element: <LoginPage />,
@@ -29,22 +30,28 @@ const AppRoutes = () => {
         </ProtectedRoute>
       ),
     },
-
     {
       path: "/AppCoursePreference",
       element: (
         <ProtectedRoute>
-          <AppCoursePreference />
+          <ApplicationForm />
         </ProtectedRoute>
       ),
     },
+    {
+      path: "/ApplicationTrack",
+      element: (
+        <ProtectedRoute>
+          <ApplicationTrack />
+        </ProtectedRoute>
+      ),
+    },
+    // Add a fallback route if needed
     // {
     //   path: "*",
     //   element: <NotFoundPage />,
     // },
   ]);
-
-  return routes;
 };
 
 export default AppRoutes;
