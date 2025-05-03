@@ -43,7 +43,7 @@ const ShowcaseButton = styled(Button)(({ theme }) => ({
 
 const Homepage = () => {
   const navigate = useNavigate();
-  const [username, setUsername] = useState("Username");
+  const [userFullName, setUserFullName] = useState("User");
   const { handleSuccess, handleError, snackbar } = useResponseHandler();
   
   useEffect(() => {
@@ -51,8 +51,24 @@ const Homepage = () => {
     if (!applicantId) {
       handleError("Please login to continue");
       navigate("/login");
+      return;
     }
-    // In a real app, you might fetch user data here based on applicantId
+
+    // Fetch user data using the ApplicantController endpoint
+    const fetchUserData = async () => {
+      try {
+        const response = await fetch(`http://localhost:8080/api/applicants/${applicantId}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch user data");
+        }
+        const data = await response.json();
+        setUserFullName(`${data.firstName} ${data.lastName}`);
+      } catch (error) {
+        handleError("Failed to fetch user data");
+      }
+    };
+
+    fetchUserData();
   }, [navigate, handleError]);
 
   const handleStartApplication = () => {
@@ -83,7 +99,7 @@ const Homepage = () => {
           }}
         >
           <Typography variant="h4" fontWeight="bold" gutterBottom>
-            Hi, {username}. Your ETEEAP journey begins here!
+            Hi, {userFullName}. Your ETEEAP journey begins here!
           </Typography>
           
           <Stack 
