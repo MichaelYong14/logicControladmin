@@ -22,6 +22,7 @@ public class ApplicantApplicationController {
         return ResponseEntity.ok(createdApplication);
     }
 
+
     @GetMapping
     public ResponseEntity<List<ApplicantApplication>> getAllApplications() {
         List<ApplicantApplication> applications = applicationService.getAllApplications();

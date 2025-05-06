@@ -2,6 +2,9 @@ package com.caps.eteeapp.model;
 
 import jakarta.persistence.*;
 import java.util.Date;
+import lombok.Data;
+
+@Data
 
 @Entity
 public class Evaluation {

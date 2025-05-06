@@ -23,8 +23,16 @@ public class ApplicationCoursePreference {
     @Enumerated(EnumType.STRING)
     private PriorityOrder priorityOrder;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.PENDING;
+
     public enum PriorityOrder {
         FIRST, SECOND, THIRD
+    }
+
+    public enum Status {
+        PENDING, REVIEWED, ACCEPTED, REJECTED
     }
 
     // Getters and setters...
