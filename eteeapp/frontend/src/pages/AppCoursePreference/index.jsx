@@ -109,11 +109,6 @@ const TrackButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-// College sections for the dialog
-const CollegeSection = styled(Box)(({ theme }) => ({
-  marginBottom: theme.spacing(2),
-}));
-
 const ApplicationForm = () => {
   const navigate = useNavigate();
   const { handleSuccess, handleError, snackbar } = useResponseHandler();
@@ -134,43 +129,9 @@ const ApplicationForm = () => {
 
   const priorityOrders = ["FIRST", "SECOND", "THIRD"];
 
-  // Define courses by college
-  const coursesByCollege = {
-    "College of Management, Business, and Accountancy": [
-      { courseId: 1, courseName: "BS Business Administration - General Business Management" },
-      { courseId: 2, courseName: "BS Business Administration - Banking & Financial Management" },
-      { courseId: 3, courseName: "BS Business Administration - Human Resource Management" },
-      { courseId: 4, courseName: "BS Business Administration - Marketing Management" },
-      { courseId: 5, courseName: "BS Business Administration - Operations Management" },
-      { courseId: 6, courseName: "BS Business Administration - Public Management" },
-      { courseId: 7, courseName: "Bachelor in Public Administration - Business Analytics" },
-      { courseId: 8, courseName: "BS Office Administration" },
-    ],
-    "College of Computer Studies": [
-      { courseId: 9, courseName: "BS Information Technology" },
-    ],
-    "College of Arts, Sciences, and Education": [
-      { courseId: 10, courseName: "AB Communication" },
-      { courseId: 11, courseName: "BS Elementary Education" },
-      { courseId: 12, courseName: "BS Secondary Education - English" },
-      { courseId: 13, courseName: "BS Secondary Education - Filipino" },
-      { courseId: 14, courseName: "BS Secondary Education - Mathematics" },
-      { courseId: 15, courseName: "BS Secondary Education - Science" },
-    ],
-    "College of Engineering and Architecture": [
-      { courseId: 16, courseName: "BS Architecture" },
-      { courseId: 17, courseName: "BS Chemical Engineering" },
-      { courseId: 18, courseName: "BS Civil Engineering" },
-      { courseId: 19, courseName: "BS Computer Engineering" },
-      { courseId: 20, courseName: "BS Electronics Engineering" },
-      { courseId: 21, courseName: "BS Electrical Engineering" },
-      { courseId: 22, courseName: "BS Industrial Engineering" },
-      { courseId: 23, courseName: "BS Mechanical Engineering" },
-    ],
-  };
-
   useEffect(() => {
     const storedApplicantId = localStorage.getItem("applicantId");
+
     if (!storedApplicantId) {
       handleError("Please login to continue");
       navigate("/login");
@@ -179,23 +140,57 @@ const ApplicationForm = () => {
 
     setApplicantId(storedApplicantId);
 
-    // Fetch applicant data
+    // Fetch applicant data to set Name and Email
     fetchApplicantData(storedApplicantId);
 
-    // Fetch course preferences
-    fetchCoursePreferencesFromBackend();
+    // Fetch course preferences using applicant ID
+    fetchCoursePreferences(storedApplicantId);
 
-    // Set available courses from our defined list
-    const allCourses = [];
-    Object.values(coursesByCollege).forEach(collegeList => {
-      allCourses.push(...collegeList);
-    });
-    setAvailableCourses(allCourses);
+    // Fetch courses from backend
+    fetchCoursesFromBackend();
   }, [navigate, handleError]);
 
-  const fetchCoursePreferencesFromBackend = async () => {
+  const fetchCoursesFromBackend = async () => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/preferences/application/${applicationId}`);
+      const response = await axios.get("http://localhost:8080/api/courses");
+      setAvailableCourses(response.data);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      handleError("Failed to load courses");
+    }
+  };
+
+  const fetchApplicantData = async (id) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/applicants/${id}`);
+      setUserData({
+        name: `${response.data.firstName} ${response.data.lastName}`,
+        email: response.data.email,
+      });
+    } catch (error) {
+      console.error("Error fetching applicant data:", error);
+      handleError("Failed to load applicant data");
+    }
+  };
+
+  const createNewApplication = async (applicantId) => {
+    try {
+      const response = await axios.post("http://localhost:8080/api/applications", {
+        applicantId: applicantId,
+        status: "DRAFT"
+      });
+      
+      setApplicationId(response.data.applicationId);
+      localStorage.setItem("applicationId", response.data.applicationId); // Persist applicationId
+    } catch (error) {
+      console.error("Error creating application:", error);
+      handleError("Failed to create application");
+    }
+  };
+  
+  const fetchCoursePreferences = async (applicantId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/preferences/applicant/${applicantId}`);
       
       // Sort preferences by priority
       const priorityOrder = { "FIRST": 1, "SECOND": 2, "THIRD": 3 };
@@ -206,61 +201,6 @@ const ApplicationForm = () => {
       setCoursePreferences(sortedPrefs);
     } catch (error) {
       console.error("Error fetching course preferences:", error);
-      setCoursePreferences([]);
-    }
-  };
-
-  const fetchApplicantData = async (id) => {
-    try {
-      // Fetch applicant profile
-      const profileResponse = await axios.get(`http://localhost:8080/api/applicants/${id}`);
-      
-      // Set user data
-      setUserData({
-        name: `${profileResponse.data.firstName} ${profileResponse.data.middleInitial ? profileResponse.data.middleInitial + '.' : ''} ${profileResponse.data.lastName}`,
-        email: profileResponse.data.email
-      });
-      
-      // Check if applicant already has an application
-      const applicationsResponse = await axios.get(`http://localhost:8080/api/applications/applicant/${id}`);
-      
-      if (applicationsResponse.data && applicationsResponse.data.length > 0) {
-        const appId = applicationsResponse.data[0].applicationId;
-        setApplicationId(appId);
-        
-        // Fetch course preferences for this application
-        fetchCoursePreferences(appId);
-      } else {
-        // Create a new application for this applicant
-        createNewApplication(id);
-      }
-    } catch (error) {
-      console.error("Error fetching applicant data:", error);
-      handleError("Failed to load applicant data");
-    }
-  };
-  
-  const createNewApplication = async (applicantId) => {
-    try {
-      const response = await axios.post("http://localhost:8080/api/applications", {
-        applicantId: applicantId,
-        status: "DRAFT"
-      });
-      
-      setApplicationId(response.data.applicationId);
-    } catch (error) {
-      console.error("Error creating application:", error);
-      handleError("Failed to create application");
-    }
-  };
-  
-  const fetchCoursePreferences = async (appId) => {
-    try {
-      const response = await axios.get(`http://localhost:8080/api/preferences/application/${appId}`);
-      setCoursePreferences(response.data);
-    } catch (error) {
-      console.error("Error fetching course preferences:", error);
-      // If no preferences yet, that's okay, we'll start with empty
       setCoursePreferences([]);
     }
   };
@@ -285,31 +225,23 @@ const ApplicationForm = () => {
     }
 
     try {
-      // Check if we're updating an existing preference or creating a new one
-      const existingPreference = coursePreferences.find(
-        pref => pref.priorityOrder === priorityOrders[currentPriorityIndex]
-      );
-
-      if (existingPreference) {
-        // Delete existing preference first
-        await axios.delete(`http://localhost:8080/api/preferences/${existingPreference.preferenceId}`);
-      }
-
       // Create new preference
       const newPreference = {
-        application: { applicationId: applicationId },
         course: { courseId: selectedCourse.courseId },
-        priorityOrder: priorityOrders[currentPriorityIndex]
+        priorityOrder: priorityOrders[currentPriorityIndex],
       };
 
-      const response = await axios.post("http://localhost:8080/api/preferences", newPreference);
+      const response = await axios.post(
+        `http://localhost:8080/api/preferences/applicant/${applicantId}`,
+        newPreference
+      );
 
       // Update local state with the new/updated preference
       const updatedPreferences = [...coursePreferences];
 
       // Remove the old preference if it existed
       const filteredPreferences = updatedPreferences.filter(
-        pref => pref.priorityOrder !== priorityOrders[currentPriorityIndex]
+        (pref) => pref.priorityOrder !== priorityOrders[currentPriorityIndex]
       );
 
       // Add the new preference
@@ -321,15 +253,6 @@ const ApplicationForm = () => {
       console.error("Error saving course preference:", error);
       handleError("Failed to save course preference");
     }
-
-    // Update the displayed course for the selected priority
-    setCoursePreferences((prev) => [
-      ...prev.filter((pref) => pref.priorityOrder !== priorityOrders[currentPriorityIndex]),
-      {
-        priorityOrder: priorityOrders[currentPriorityIndex],
-        course: selectedCourse,
-      },
-    ]);
 
     setCourseDialogOpen(false);
     setSelectedCourse(null);
@@ -491,7 +414,7 @@ const ApplicationForm = () => {
         </ApplicationPaper>
       </Stack>
 
-      {/* Course Selection Dialog - Organized by College */}
+      {/* Course Selection Dialog */}
       <Dialog 
         open={courseDialogOpen} 
         onClose={handleDialogClose}
@@ -504,30 +427,22 @@ const ApplicationForm = () => {
           </Typography>
         </DialogTitle>
         <DialogContent>
-          {Object.entries(coursesByCollege).map(([college, courses], index) => (
-            <CollegeSection key={index}>
-              <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 1, color: "#800000" }}>
-                {college}
-              </Typography>
-              <List sx={{ pl: 2 }}>
-                {courses.map((course) => (
-                  <ListItem 
-                    button 
-                    key={course.courseId}
-                    onClick={() => handleCourseSelection(course)}
-                    selected={selectedCourse && selectedCourse.courseId === course.courseId}
-                    sx={{
-                      bgcolor: selectedCourse && selectedCourse.courseId === course.courseId ? '#f0f0f0' : 'transparent',
-                      borderRadius: 1
-                    }}
-                  >
-                    <ListItemText primary={course.courseName} />
-                  </ListItem>
-                ))}
-              </List>
-              {index < Object.entries(coursesByCollege).length - 1 && <Divider sx={{ my: 2 }} />}
-            </CollegeSection>
-          ))}
+          <List>
+            {availableCourses.map((course) => (
+              <ListItem 
+                button 
+                key={course.courseId}
+                onClick={() => handleCourseSelection(course)}
+                selected={selectedCourse && selectedCourse.courseId === course.courseId}
+                sx={{
+                  bgcolor: selectedCourse && selectedCourse.courseId === course.courseId ? '#f0f0f0' : 'transparent',
+                  borderRadius: 1
+                }}
+              >
+                <ListItemText primary={course.courseName} />
+              </ListItem>
+            ))}
+          </List>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDialogClose}>Cancel</Button>

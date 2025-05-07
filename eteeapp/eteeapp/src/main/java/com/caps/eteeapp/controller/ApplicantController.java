@@ -1,23 +1,16 @@
 package com.caps.eteeapp.controller;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PatchMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
 import com.caps.eteeapp.model.Applicant;
 import com.caps.eteeapp.service.ApplicantService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
 
-@CrossOrigin(origins = "http://localhost:3000") // Allow requests from the frontend
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+
+@CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/applicants")
 public class ApplicantController {
@@ -32,16 +25,21 @@ public class ApplicantController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> loginApplicant(@RequestBody Applicant loginRequest) {
+    public ResponseEntity<Map<String, Object>> loginApplicant(@RequestBody Applicant loginRequest) {
         Optional<Applicant> applicant = applicantService.loginApplicant(loginRequest.getEmail(), loginRequest.getPassword());
         if (applicant.isPresent()) {
             Applicant loggedInApplicant = applicant.get();
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Login successful!");
+            response.put("applicantId", loggedInApplicant.getApplicantId());
             if (loggedInApplicant.getFirstName() == null || loggedInApplicant.getLastName() == null) {
-                return ResponseEntity.ok("Login successful! Please complete your profile.");
+                response.put("profileIncomplete", true);
+            } else {
+                response.put("profileIncomplete", false);
             }
-            return ResponseEntity.ok("Login successful!");
+            return ResponseEntity.ok(response);
         }
-        return ResponseEntity.status(401).body("Invalid email or password.");
+        return ResponseEntity.status(401).body(null); // Invalid email or password
     }
 
     @PutMapping("/update")
@@ -73,6 +71,6 @@ public class ApplicantController {
         if (applicant.isPresent()) {
             return ResponseEntity.ok(applicant.get());
         }
-        return ResponseEntity.status(404).body(null); // Not Found if applicantId does not exist
+        return ResponseEntity.notFound().build(); // Return 404 if the applicant is not found
     }
 }

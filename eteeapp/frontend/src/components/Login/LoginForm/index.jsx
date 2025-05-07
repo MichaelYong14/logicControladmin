@@ -89,7 +89,14 @@ const LoginForm = ({
           }
         );
 
-        localStorage.setItem("applicantId", response.data.applicantId);
+        // Store applicantId in localStorage
+        const applicantId = response.data.applicantId;
+        if (applicantId) {
+          localStorage.setItem("applicantId", applicantId);
+        } else {
+          throw new Error("Applicant ID is missing in the response");
+        }
+
         console.log("Login response:", response.data);
         handleSuccess("Login successful!");
         navigate("/homepage");

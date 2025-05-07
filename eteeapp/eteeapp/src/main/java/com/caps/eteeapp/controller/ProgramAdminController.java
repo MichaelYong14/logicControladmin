@@ -40,8 +40,8 @@ public class ProgramAdminController {
     }
 
     @GetMapping("/applications/{id}/preferences")
-    public ResponseEntity<List<ApplicationCoursePreference>> getCoursePreferencesByApplicationId(@PathVariable Long id) {
-        List<ApplicationCoursePreference> preferences = preferenceService.getPreferencesByApplicationId(id);
+    public ResponseEntity<List<ApplicationCoursePreference>> getCoursePreferencesByApplicantId(@PathVariable Long id) {
+        List<ApplicationCoursePreference> preferences = preferenceService.getPreferencesByApplicantId(id);
         return ResponseEntity.ok(preferences);
     }
 

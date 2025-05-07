@@ -48,7 +48,7 @@ const Homepage = () => {
   
   useEffect(() => {
     const applicantId = localStorage.getItem("applicantId");
-    if (!applicantId) {
+    if (!applicantId || applicantId === "undefined") { // Validate applicantId
       handleError("Please login to continue");
       navigate("/login");
       return;

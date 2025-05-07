@@ -25,6 +25,10 @@ public class Evaluation {
     @JoinColumn(name = "evaluator_id")
     private Evaluator evaluator;
 
+    @ManyToOne
+    @JoinColumn(name = "applicant_id", nullable = false)
+    private Applicant applicant;
+
     @Enumerated(EnumType.STRING)
     private EvaluationStatus evaluationStatus;
 

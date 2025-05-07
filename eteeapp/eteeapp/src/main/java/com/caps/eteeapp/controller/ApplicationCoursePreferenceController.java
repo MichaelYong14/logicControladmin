@@ -23,9 +23,17 @@ public class ApplicationCoursePreferenceController {
         return ResponseEntity.ok(createdPreference);
     }
 
-    @GetMapping("/application/{applicationId}")
-    public ResponseEntity<List<ApplicationCoursePreference>> getPreferencesByApplicationId(@PathVariable Long applicationId) {
-        List<ApplicationCoursePreference> preferences = preferenceService.getPreferencesByApplicationId(applicationId);
+    @PostMapping("/applicant/{applicantId}")
+    public ResponseEntity<ApplicationCoursePreference> createPreference(
+            @PathVariable Long applicantId,
+            @RequestBody ApplicationCoursePreference preference) {
+        ApplicationCoursePreference createdPreference = preferenceService.createPreferenceForApplicant(applicantId, preference);
+        return ResponseEntity.ok(createdPreference);
+    }
+
+    @GetMapping("/applicant/{applicantId}")
+    public ResponseEntity<List<ApplicationCoursePreference>> getPreferencesByApplicantId(@PathVariable Long applicantId) {
+        List<ApplicationCoursePreference> preferences = preferenceService.getPreferencesByApplicantId(applicantId);
         return ResponseEntity.ok(preferences);
     }
 

@@ -13,8 +13,8 @@ import java.util.Optional;
 @Service
 public class EvaluationService {
 
-    @Autowired
-    private ApplicantApplicationRepository applicationRepository;
+    // @Autowired
+    // private ApplicantApplicationRepository applicationRepository;
 
     @Autowired
     private ApplicationCoursePreferenceRepository preferenceRepository;
@@ -28,16 +28,13 @@ public class EvaluationService {
     // @Autowired
     // private DepartmentRepository departmentRepository;
 
-    public List<Evaluation> forwardApplication(Long applicationId) {
-        ApplicantApplication application = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RuntimeException("Application not found with id " + applicationId));
-
-        List<ApplicationCoursePreference> preferences = preferenceRepository.findByApplication_ApplicationId(applicationId);
+    public List<Evaluation> forwardApplication(Long applicantId) {
+        List<ApplicationCoursePreference> preferences = preferenceRepository.findByApplicant_ApplicantId(applicantId);
 
         List<Evaluation> evaluations = new ArrayList<>();
         for (ApplicationCoursePreference preference : preferences) {
             Evaluation evaluation = new Evaluation();
-            evaluation.setApplication(application);
+            evaluation.setApplicant(preference.getApplicant());
             evaluation.setCourse(preference.getCourse());
             evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
             evaluation.setDateEvaluated(new Date());
@@ -47,11 +44,8 @@ public class EvaluationService {
         return evaluations;
     }
 
-    public List<Evaluation> forwardToDepartment(Long applicationId) {
-        ApplicantApplication application = applicationRepository.findById(applicationId)
-                .orElseThrow(() -> new RuntimeException("Application not found with id " + applicationId));
-
-        List<ApplicationCoursePreference> preferences = preferenceRepository.findByApplication_ApplicationId(applicationId);
+    public List<Evaluation> forwardToDepartment(Long applicantId) {
+        List<ApplicationCoursePreference> preferences = preferenceRepository.findByApplicant_ApplicantId(applicantId);
 
         List<Evaluation> evaluations = new ArrayList<>();
         for (ApplicationCoursePreference preference : preferences) {
@@ -62,7 +56,7 @@ public class EvaluationService {
                 Evaluator evaluator = department.getDepartmentHead();
 
                 Evaluation evaluation = new Evaluation();
-                evaluation.setApplication(application);
+                evaluation.setApplicant(preference.getApplicant());
                 evaluation.setCourse(course);
                 evaluation.setEvaluator(evaluator);
                 evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);

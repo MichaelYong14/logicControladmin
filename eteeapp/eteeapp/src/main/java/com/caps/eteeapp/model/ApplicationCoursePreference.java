@@ -12,8 +12,8 @@ public class ApplicationCoursePreference {
     private Long preferenceId;
 
     @ManyToOne
-    @JoinColumn(name = "application_id", nullable = false)
-    private ApplicantApplication application;
+    @JoinColumn(name = "applicant_id", nullable = false) // Reference applicantId instead of applicationId
+    private Applicant applicant;
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
@@ -34,6 +34,4 @@ public class ApplicationCoursePreference {
     public enum Status {
         PENDING, REVIEWED, ACCEPTED, REJECTED
     }
-
-    // Getters and setters...
 }
