@@ -5,12 +5,14 @@ import {
   Button, 
   Stack, 
   Box,
-  styled 
+  styled,
+  Modal 
 } from "@mui/material";
 import MinimalLayout from "../../templates/MinimalLayout";
 import backgroundImage from "../../assets/login-bg.png"; // Use the same background as login
 import logo from "../../assets/logo.png";
 import useResponseHandler from "../../utils/useResponseHandler";
+import axios from "axios";
 
 // Styled components
 const StartButton = styled(Button)(({ theme }) => ({
@@ -41,9 +43,42 @@ const ShowcaseButton = styled(Button)(({ theme }) => ({
   }
 }));
 
+const SuccessModal = styled(Modal)(() => ({
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+}));
+
+const SuccessModalContent = styled(Box)(({ theme }) => ({
+  backgroundColor: "white",
+  borderRadius: 16,
+  boxShadow: theme.shadows[5],
+  padding: theme.spacing(4),
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  width: "100%",
+  maxWidth: 400,
+  textAlign: "center",
+}));
+
+const TrackButton = styled(Button)(({ theme }) => ({
+  backgroundColor: "#ffde00",
+  color: "black",
+  borderRadius: 20,
+  padding: "10px 30px",
+  fontSize: 16,
+  fontWeight: "bold",
+  textTransform: "none",
+  "&:hover": {
+    backgroundColor: "#e6c800",
+  }
+}));
+
 const Homepage = () => {
   const navigate = useNavigate();
   const [userFullName, setUserFullName] = useState("User");
+  const [successModalOpen, setSuccessModalOpen] = useState(false);
   const { handleSuccess, handleError, snackbar } = useResponseHandler();
   
   useEffect(() => {
@@ -71,9 +106,34 @@ const Homepage = () => {
     fetchUserData();
   }, [navigate, handleError]);
 
-  const handleStartApplication = () => {
-    navigate("/AppCoursePreference");
-    handleSuccess("Navigated to course preference page!");
+  const handleStartApplication = async () => {
+    const applicantId = localStorage.getItem("applicantId");
+    try {
+      const response = await axios.get(`http://localhost:8080/api/applications/applicant/${applicantId}`);
+      if (response.data && response.data.length > 0) {
+        // Trigger SuccessModal if an application already exists
+        setSuccessModalOpen(true);
+        return;
+      }
+
+      // Navigate to AppCoursePreference if no application exists
+      navigate("/AppCoursePreference");
+      handleSuccess("Navigated to course preference page!");
+    } catch (error) {
+      if (error.response && error.response.status === 404) {
+        // No application exists, proceed to AppCoursePreference
+        navigate("/AppCoursePreference");
+        handleSuccess("Navigated to course preference page!");
+      } else {
+        console.error("Error checking application:", error);
+        handleError("Failed to check application. Please try again.");
+      }
+    }
+  };
+
+  const handleTrackApplication = () => {
+    setSuccessModalOpen(false);
+    navigate("/ApplicationTrack");
   };
 
   const handleProgramShowcase = () => {
@@ -143,6 +203,25 @@ const Homepage = () => {
           </ShowcaseButton>
         </Box>
       </Stack>
+
+      {/* Success Modal */}
+      <SuccessModal
+        open={successModalOpen}
+        aria-labelledby="success-modal-title"
+        aria-describedby="success-modal-description"
+      >
+        <SuccessModalContent>
+          <img src={logo} alt="Logo" style={{ height: 40, marginBottom: 16 }} />
+          <Typography variant="h6" id="success-modal-title" sx={{ mb: 2 }}>
+            Hi, {userFullName.split(" ")[0]}. You already submitted an application.
+          </Typography>
+          <Typography variant="body2" id="success-modal-description" sx={{ mb: 3 }}>
+            Click here to
+          </Typography>
+          <TrackButton onClick={handleTrackApplication}>Track your Application</TrackButton>
+        </SuccessModalContent>
+      </SuccessModal>
+
       {snackbar}
     </MinimalLayout>
   );

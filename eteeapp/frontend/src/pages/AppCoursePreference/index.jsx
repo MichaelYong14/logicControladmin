@@ -325,11 +325,21 @@ const ApplicationForm = () => {
       console.log("Applicant ID:", applicantId); // Log the applicantId for debugging
 
       // Check if the applicant already has an application
-      const response = await axios.get(`http://localhost:8080/api/applications/applicant/${applicantId}`);
-      if (response.data && response.data.length > 0) {
-        // Trigger SuccessModal if an application already exists
-        setSuccessModalOpen(true);
-        return;
+      try {
+        const response = await axios.get(`http://localhost:8080/api/applications/applicant/${applicantId}`);
+        if (response.data && response.data.length > 0) {
+          // Trigger SuccessModal if an application already exists
+          setSuccessModalOpen(true);
+          return;
+        }
+      } catch (error) {
+        if (error.response && error.response.status === 404) {
+          console.log("No existing application found. Proceeding to create a new application.");
+        } else {
+          console.error("Error checking existing application:", error);
+          handleError("Failed to check existing application. Please try again.");
+          return;
+        }
       }
 
       // Create a new application for the applicant
