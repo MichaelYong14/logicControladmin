@@ -297,12 +297,22 @@ const ApplicationForm = () => {
       handleSuccess("Files uploaded successfully!");
       console.log("Uploaded files:", response.data);
 
+      // Handle both single and multiple file uploads
+      const uploadedFiles = Array.isArray(response.data)
+        ? response.data.map((doc) => ({
+            name: doc.fileName,
+            id: doc.documentId,
+            downloadUrl: doc.downloadUrl,
+          }))
+        : [
+            {
+              name: response.data.fileName,
+              id: response.data.documentId,
+              downloadUrl: response.data.downloadUrl,
+            },
+          ];
+
       // Update the local state with the uploaded files
-      const uploadedFiles = response.data.map((doc) => ({
-        name: doc.fileName,
-        id: doc.documentId,
-        downloadUrl: doc.downloadUrl,
-      }));
       setFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
     } catch (error) {
       console.error("Error uploading files:", error);
