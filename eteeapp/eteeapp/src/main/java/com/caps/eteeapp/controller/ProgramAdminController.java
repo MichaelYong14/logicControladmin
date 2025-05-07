@@ -2,10 +2,8 @@ package com.caps.eteeapp.controller;
 
 import com.caps.eteeapp.model.ApplicantApplication;
 import com.caps.eteeapp.model.ApplicationCoursePreference;
-import com.caps.eteeapp.model.Document;
 import com.caps.eteeapp.service.ApplicantApplicationService;
 import com.caps.eteeapp.service.ApplicationCoursePreferenceService;
-import com.caps.eteeapp.service.DocumentService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -22,9 +20,6 @@ public class ProgramAdminController {
 
     @Autowired
     private ApplicationCoursePreferenceService preferenceService;
-
-    @Autowired
-    private DocumentService documentService;
 
     @GetMapping("/applications")
     public ResponseEntity<List<ApplicantApplication>> getAllApplications() {
@@ -43,12 +38,6 @@ public class ProgramAdminController {
     public ResponseEntity<List<ApplicationCoursePreference>> getCoursePreferencesByApplicantId(@PathVariable Long id) {
         List<ApplicationCoursePreference> preferences = preferenceService.getPreferencesByApplicantId(id);
         return ResponseEntity.ok(preferences);
-    }
-
-    @GetMapping("/applications/{id}/documents")
-    public ResponseEntity<List<Document>> getDocumentsByApplicationId(@PathVariable Long id) {
-        List<Document> documents = documentService.getDocumentsByApplicationId(id);
-        return ResponseEntity.ok(documents);
     }
 
     @PutMapping("/applications/{id}/update-status")

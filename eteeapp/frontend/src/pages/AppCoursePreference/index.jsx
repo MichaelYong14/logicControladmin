@@ -148,6 +148,9 @@ const ApplicationForm = () => {
 
     // Fetch courses from backend
     fetchCoursesFromBackend();
+
+    // Fetch uploaded documents for the applicant
+    fetchUploadedDocuments(storedApplicantId);
   }, [navigate, handleError]);
 
   const fetchCoursesFromBackend = async () => {
@@ -173,20 +176,20 @@ const ApplicationForm = () => {
     }
   };
 
-  const createNewApplication = async (applicantId) => {
-    try {
-      const response = await axios.post("http://localhost:8080/api/applications", {
-        applicantId: applicantId,
-        status: "DRAFT"
-      });
+  // const createNewApplication = async (applicantId) => {
+  //   try {
+  //     const response = await axios.post("http://localhost:8080/api/applications", {
+  //       applicantId: applicantId,
+  //       status: "DRAFT"
+  //     });
       
-      setApplicationId(response.data.applicationId);
-      localStorage.setItem("applicationId", response.data.applicationId); // Persist applicationId
-    } catch (error) {
-      console.error("Error creating application:", error);
-      handleError("Failed to create application");
-    }
-  };
+  //     setApplicationId(response.data.applicationId);
+  //     localStorage.setItem("applicationId", response.data.applicationId); // Persist applicationId
+  //   } catch (error) {
+  //     console.error("Error creating application:", error);
+  //     handleError("Failed to create application");
+  //   }
+  // };
   
   const fetchCoursePreferences = async (applicantId) => {
     try {
@@ -202,6 +205,21 @@ const ApplicationForm = () => {
     } catch (error) {
       console.error("Error fetching course preferences:", error);
       setCoursePreferences([]);
+    }
+  };
+
+  const fetchUploadedDocuments = async (applicantId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/documents/applicant/${applicantId}`);
+      const documents = response.data.map((doc) => ({
+        name: doc.fileName,
+        id: doc.documentId,
+        downloadUrl: doc.downloadUrl,
+      }));
+      setFiles(documents);
+    } catch (error) {
+      console.error("Error fetching uploaded documents:", error);
+      handleError("Failed to load uploaded documents");
     }
   };
 
@@ -258,36 +276,70 @@ const ApplicationForm = () => {
     setSelectedCourse(null);
   };
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = async (event) => {
     const fileList = Array.from(event.target.files);
-    setFiles([...files, ...fileList]);
-    
-    // In a real app, you would upload these files to your server
-    // For example:
-    /*
+
+    // Prepare form data for file upload
     const formData = new FormData();
-    fileList.forEach(file => {
-      formData.append('files', file);
+    fileList.forEach((file) => {
+      formData.append("files", file);
     });
-    formData.append('applicationId', applicationId);
-    
-    axios.post('http://localhost:8080/api/documents/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    }).then(response => {
+    formData.append("applicantId", applicantId);
+    formData.append("documentType", "General"); // Example document type
+
+    try {
+      const response = await axios.post("http://localhost:8080/api/documents/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       handleSuccess("Files uploaded successfully!");
-    }).catch(error => {
+      console.log("Uploaded files:", response.data);
+
+      // Update the local state with the uploaded files
+      const uploadedFiles = response.data.map((doc) => ({
+        name: doc.fileName,
+        id: doc.documentId,
+        downloadUrl: doc.downloadUrl,
+      }));
+      setFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
+    } catch (error) {
+      console.error("Error uploading files:", error);
       handleError("Failed to upload files");
-    });
-    */
-    
-    handleSuccess("File uploaded successfully!");
+    }
   };
 
-  const handleSubmit = () => {
-    // Navigate to the next page directly
-    navigate("/ApplicationTrack");
+  const handleSubmit = async () => {
+    try {
+      console.log("Applicant ID:", applicantId); // Log the applicantId for debugging
+
+      // Check if the applicant already has an application
+      const response = await axios.get(`http://localhost:8080/api/applications/applicant/${applicantId}`);
+      if (response.data && response.data.length > 0) {
+        // Trigger SuccessModal if an application already exists
+        setSuccessModalOpen(true);
+        return;
+      }
+
+      // Create a new application for the applicant
+      const newApplication = {
+        status: "PENDING",
+      };
+
+      // Send the POST request to create the application
+      await axios.post(`http://localhost:8080/api/applications/applicant/${applicantId}`, newApplication, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+
+      handleSuccess("Application submitted successfully!");
+      navigate("/ApplicationTrack");
+    } catch (error) {
+      console.error("Error submitting application:", error);
+      handleError("Failed to submit application. Please try again.");
+    }
   };
 
   const handleTrackApplication = () => {
@@ -387,9 +439,15 @@ const ApplicationForm = () => {
                   <Typography variant="subtitle2" gutterBottom>Files Uploaded</Typography>
                   {files.length > 0 ? (
                     <List dense sx={{ bgcolor: "#f5f5f5", borderRadius: 1 }}>
-                      {files.map((file, index) => (
-                        <ListItem key={index}>
-                          <ListItemText primary={file.name} />
+                      {files.map((file) => (
+                        <ListItem key={file.id}>
+                          <ListItemText
+                            primary={
+                              <a href={file.downloadUrl} target="_blank" rel="noopener noreferrer">
+                                {file.name}
+                              </a>
+                            }
+                          />
                         </ListItem>
                       ))}
                     </List>

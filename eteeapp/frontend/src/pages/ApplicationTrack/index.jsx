@@ -79,6 +79,7 @@ const ApplicationTracking = () => {
 
   useEffect(() => {
     const storedApplicantId = localStorage.getItem("applicantId");
+
     if (!storedApplicantId) {
       handleError("Please login to continue");
       return;
@@ -86,7 +87,7 @@ const ApplicationTracking = () => {
 
     setApplicantId(storedApplicantId);
 
-    // Fetch applicant data
+    // Fetch applicant data and preferences
     fetchApplicantData(storedApplicantId);
 
     // Fetch available courses
@@ -113,22 +114,31 @@ const ApplicationTracking = () => {
         setApplicationStatus(applicationsResponse.data[0].status);
         
         // Fetch course preferences for this application
-        fetchCoursePreferences(appId);
+        fetchCoursePreferences(id);
         
-        // Fetch documents for this application
-        // Note: This is a placeholder - implement actual API call when available
-        setDocuments([
-          { id: 1, name: "Transcript.pdf" },
-          { id: 2, name: "Recommendation_Letter.pdf" },
-          { id: 3, name: "CV.pdf" },
-          { id: 4, name: "Photo_ID.jpg" }
-        ]);
+        // Fetch documents for this applicant
+        fetchDocuments(id);
       } else {
         handleError("No application found");
       }
     } catch (error) {
       console.error("Error fetching applicant data:", error);
       handleError("Failed to load applicant data");
+    }
+  };
+
+  const fetchDocuments = async (applicantId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/documents/applicant/${applicantId}`);
+      const documents = response.data.map((doc) => ({
+        id: doc.documentId,
+        name: doc.fileName,
+        downloadUrl: doc.filePath, // Assuming filePath is the download URL
+      }));
+      setDocuments(documents);
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      handleError("Failed to load documents");
     }
   };
   
@@ -141,10 +151,10 @@ const ApplicationTracking = () => {
       handleError("Failed to load available courses");
     }
   };
-  
-  const fetchCoursePreferences = async (appId) => {
+ 
+  const fetchCoursePreferences = async (applicantId) => {
     try {
-      const response = await axios.get(`http://localhost:8080/api/preferences/application/${appId}`);
+      const response = await axios.get(`http://localhost:8080/api/preferences/applicant/${applicantId}`);
       
       // Sort preferences by priority
       const priorityOrder = { "FIRST": 1, "SECOND": 2, "THIRD": 3 };
@@ -155,43 +165,37 @@ const ApplicationTracking = () => {
       setCoursePreferences(sortedPrefs);
     } catch (error) {
       console.error("Error fetching course preferences:", error);
-      setCoursePreferences([]);
+      setCoursePreferences([]); // Ensure state is cleared only on error
     }
   };
 
-  const handleFileUpload = (event) => {
+  const handleFileUpload = async (event) => {
     const fileList = Array.from(event.target.files);
-    
-    // In a real app, you would upload these files to your server
-    // For example:
-    /*
+
+    // Prepare form data for file upload
     const formData = new FormData();
-    fileList.forEach(file => {
-      formData.append('files', file);
+    fileList.forEach((file) => {
+      formData.append("files", file);
     });
-    formData.append('applicationId', applicationId);
-    
-    axios.post('http://localhost:8080/api/documents/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
-    }).then(response => {
-      // Update documents list
-      setDocuments([...documents, ...response.data]);
+    formData.append("applicantId", applicantId);
+    formData.append("documentType", "General"); // Example document type
+
+    try {
+      const response = await axios.post("http://localhost:8080/api/documents/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       handleSuccess("Files uploaded successfully!");
-    }).catch(error => {
+      console.log("Uploaded files:", response.data);
+
+      // Fetch updated documents after upload
+      fetchDocuments(applicantId);
+    } catch (error) {
+      console.error("Error uploading files:", error);
       handleError("Failed to upload files");
-    });
-    */
-    
-    // For now, just add the files to the documents list
-    const newDocs = fileList.map((file, index) => ({
-      id: documents.length + index + 1,
-      name: file.name
-    }));
-    
-    setDocuments([...documents, ...newDocs]);
-    handleSuccess("File uploaded successfully!");
+    }
   };
 
   // Get the course name for a given course ID
@@ -251,13 +255,30 @@ const ApplicationTracking = () => {
                   <Typography variant="subtitle2" gutterBottom>Course Preference(s):</Typography>
                   <Stack spacing={1} sx={{ mt: 1 }}>
                     {coursePreferences.map((pref, index) => (
-                      <CourseBox key={index}>
-                        <Typography variant="body2" color="text.secondary">
-                          {formatPriority(pref.priorityOrder)}
-                        </Typography>
-                        <Typography variant="body1">
-                          {getCourseName(pref.course.courseId)}
-                        </Typography>
+                      <CourseBox key={index} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <Box>
+                          <Typography variant="body2" color="text.secondary">
+                            {formatPriority(pref.priorityOrder)}
+                          </Typography>
+                          <Typography variant="body1">
+                            {getCourseName(pref.course.courseId)}
+                          </Typography>
+                        </Box>
+                        <Chip
+                          label={pref.status}
+                          sx={{
+                            backgroundColor: pref.status === "PENDING" ? "#FFF9C4" :
+                                             pref.status === "REVIEWED" ? "#BBDEFB" :
+                                             pref.status === "ACCEPTED" ? "#C8E6C9" :
+                                             pref.status === "REJECTED" ? "#FFCDD2" : "#E0E0E0",
+                            color: pref.status === "PENDING" ? "#827717" :
+                                   pref.status === "REVIEWED" ? "#1565C0" :
+                                   pref.status === "ACCEPTED" ? "#2E7D32" :
+                                   pref.status === "REJECTED" ? "#C62828" : "#424242",
+                            fontWeight: "bold",
+                            borderRadius: 16,
+                          }}
+                        />
                       </CourseBox>
                     ))}
                   </Stack>
