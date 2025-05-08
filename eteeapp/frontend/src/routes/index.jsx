@@ -1,13 +1,17 @@
 // src/routes/AppRoutes.jsx
 import React from "react";
 import { useRoutes } from "react-router-dom";
-import LoginPage from "../pages/LoginPage";
-import SetUpProfilePage from "../pages/SetUpProfile";
-import Homepage from "../pages/HomePage";
+import LoginPage from "../pages/applicants/LoginPage";
+import SetUpProfilePage from "../pages/applicants/SetUpProfile";
+import Homepage from "../pages/applicants/HomePage";
 import ProtectedRoute from "./ProtectedRoutes";
 import ApplicationTrack from "../pages/ApplicationTrack";
 import ApplicationForm from "../pages/AppCoursePreference";
 import ProgramShowcase from "../pages/ProgramShowcase";
+import EvaluatorsLoginPage from "../pages/evaluators/LoginPage";
+import EvaluatorHomePage from "../pages/evaluators/HomePage";
+import ApplicantsListPage from "../pages/evaluators/ApplicantsListPage";
+import ViewApplicantPage from "../pages/evaluators/ViewApplicantPage";
 
 const AppRoutes = () => {
   return useRoutes([
@@ -18,17 +22,18 @@ const AppRoutes = () => {
     {
       path: "/setup-profile",
       element: (
-        <ProtectedRoute>
-          <SetUpProfilePage />
-        </ProtectedRoute>
+        // TODO: Uncoment all the proretced route after implementing the backend
+        // <ProtectedRoute>
+        <SetUpProfilePage />
+        // </ProtectedRoute>
       ),
     },
     {
       path: "/homepage",
       element: (
-        <ProtectedRoute>
-          <Homepage />
-        </ProtectedRoute>
+        // <ProtectedRoute>
+        <Homepage />
+        // </ProtectedRoute>
       ),
     },
     {
@@ -57,6 +62,28 @@ const AppRoutes = () => {
     },
     // Add a fallback route if needed
     // {
+    {
+      path: "/evaluator/login",
+      element: (
+        // <ProtectedRoute>
+        <EvaluatorsLoginPage />
+        // </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/evaluator/applicants",
+      element: (
+        // <ProtectedRoute>
+        <ApplicantsListPage />
+      ),
+    },
+    {
+      path: "/evaluator/applicants/view-applicant",
+      element: (
+        // <ProtectedRoute>
+        <ViewApplicantPage />
+      ),
+    },
     //   path: "*",
     //   element: <NotFoundPage />,
     // },

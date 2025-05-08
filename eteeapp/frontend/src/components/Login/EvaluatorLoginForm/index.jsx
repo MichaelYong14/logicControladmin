@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import axios from "axios"; // make sure to import this at the top
 import { useNavigate } from "react-router-dom"; // Add this at the top
 
 import {
@@ -33,7 +32,7 @@ const getValidationSchema = (formType) =>
     }),
   });
 
-const LoginForm = ({
+const EvaluatorLoginForm = ({
   formType = "login",
   setView,
   handleSuccess,
@@ -53,55 +52,65 @@ const LoginForm = ({
   });
 
   const onSubmit = async (data) => {
-    if (currentFormType === "signup") {
-      try {
-        const response = await axios.post(
-          "http://localhost:8080/api/applicants/register",
+    try {
+      if (currentFormType === "signup") {
+        const response = await fetch(
+          "http://localhost:8080/api/evaluators/register",
           {
-            email: data.email,
-            password: data.password,
-          }
-        );
-        console.log("Signup response:", response); // Log the response
-        localStorage.setItem("applicantId", response.data.applicantId);
-        handleSuccess("Successfully signed up! Please log in.");
-        reset(); //
-        setCurrentFormType("login"); // Switch to login view
-      } catch (error) {
-        console.error("Signup error:", error); // Log the error for debugging
-        handleError("Signup failed. Please try again.");
-      }
-    } else {
-      try {
-        const response = await axios.post(
-          "http://localhost:8080/api/applicants/login",
-          {
-            email: data.email,
-            password: data.password,
-          },
-          {
+            method: "POST",
             headers: {
               "Content-Type": "application/json",
             },
+            body: JSON.stringify({
+              email: data.email,
+              password: data.password,
+              // Add other fields if needed for Evaluator model
+            }),
           }
         );
 
-        // Store applicantId in localStorage
-        const applicantId = response.data.applicantId;
-        if (applicantId) {
-          localStorage.setItem("applicantId", applicantId);
-        } else {
-          throw new Error("Applicant ID is missing in the response");
+        if (!response.ok) {
+          throw new Error("Registration failed.");
         }
 
-        console.log("Login response:", response.data);
-        handleSuccess("Login successful!");
-        navigate("/homepage");
-      } catch (error) {
-        console.error("Login error:", error.response?.data || error.message);
-        const errorMessage = error.response?.data || error.message;
-        handleError(errorMessage);
+        const result = await response.json();
+        handleSuccess("Signup successful! Please log in.");
+        reset();
+        setCurrentFormType("login");
+      } else {
+        const response = await fetch(
+          "http://localhost:8080/api/evaluators/login",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              email: data.email,
+              password: data.password,
+            }),
+          }
+        );
+
+        const result = await response.text();
+        console.log("SA EVALUATOR NI", response);
+
+        if (response.status === 200) {
+          if (result === "Login successful!") {
+            handleSuccess("Login successful!");
+            navigate("/evaluator/homepage");
+          } else {
+            navigate("/evaluator/homepage");
+
+            handleSuccess(result); // Message for "being processed"
+          }
+        } else {
+          handleError(result); // "Invalid email or password."
+        }
       }
+    } catch (error) {
+      handleError("Something went wrong. Please try again.");
+      console.error(error);
     }
   };
 
@@ -117,7 +126,9 @@ const LoginForm = ({
       {" "}
       <StyledPaper elevation={6}>
         <Typography variant="h5" textAlign="center" fontWeight="bold">
-          {currentFormType === "login" ? "Login Form" : "Signup Form"}
+          {currentFormType === "login"
+            ? "Evaluator Login Form"
+            : "Evaluator Signup Form"}
         </Typography>
 
         <Stack direction="row" justifyContent="center">
@@ -229,4 +240,4 @@ export const StyledPaper = styled(Paper)({
   boxShadow: "inset 0px 0px 10px rgba(255, 255, 255, 0.5)",
 });
 
-export default LoginForm;
+export default EvaluatorLoginForm;

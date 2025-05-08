@@ -71,7 +71,7 @@ const SetUpProfile = ({ handleSuccess, handleError }) => {
         payload
       );
 
-      console.log("Profile completed:", response.data);
+      navigate("/homepage");
 
       if (handleSuccess) {
         handleSuccess("Successfully completed the profile. Welcome!");

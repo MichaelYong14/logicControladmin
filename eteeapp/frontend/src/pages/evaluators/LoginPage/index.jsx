@@ -1,13 +1,13 @@
 import React, { useState } from "react";
-import MinimalLayout from "../../templates/MinimalLayout";
-import LoginForm from "../../components/Login/LoginForm";
-import backgroundImage from "../../assets/login-bg.png";
-import logo from "../../assets/logo.png";
-import { Stack } from "@mui/material";
-import SetUpProfile from "../../components/Login/SetUpProfile";
-import useResponseHandler from "../../utils/useResponseHandler";
+import logo from "../../../assets/logo.png";
 
-const LoginPage = () => {
+import backgroundImage from "../../../assets/login-bg.png";
+import MinimalLayout from "../../../templates/MinimalLayout";
+import useResponseHandler from "../../../utils/useResponseHandler";
+import { Stack } from "@mui/material";
+import EvaluatorLoginForm from "../../../components/Login/EvaluatorLoginForm";
+
+const EvaluatorsLoginPage = () => {
   const [view, setView] = useState("login"); // login | signup | setupProfile
   const { handleSuccess, handleError, snackbar } = useResponseHandler();
 
@@ -16,22 +16,19 @@ const LoginPage = () => {
       <Stack alignItems="center" spacing={2}>
         <img src={logo} alt="Logo" />
         {view === "login" && (
-          <LoginForm
+          <EvaluatorLoginForm
             setView={setView}
             handleSuccess={handleSuccess}
             handleError={handleError}
           />
         )}
         {view === "signup" && (
-          <LoginForm
+          <EvaluatorLoginForm
             formType="signup"
             setView={setView}
             handleSuccess={handleSuccess}
             handleError={handleError}
           />
-        )}
-        {view === "setupProfile" && (
-          <SetUpProfile handleSuccess={handleSuccess} />
         )}
       </Stack>
       {snackbar}
@@ -39,4 +36,4 @@ const LoginPage = () => {
   );
 };
 
-export default LoginPage;
+export default EvaluatorsLoginPage;
