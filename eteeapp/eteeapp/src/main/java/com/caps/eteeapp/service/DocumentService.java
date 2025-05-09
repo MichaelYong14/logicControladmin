@@ -1,8 +1,8 @@
 package com.caps.eteeapp.service;
 
-import com.caps.eteeapp.model.ApplicantApplication;
+import com.caps.eteeapp.model.Applicant;
 import com.caps.eteeapp.model.Document;
-import com.caps.eteeapp.repository.ApplicantApplicationRepository;
+import com.caps.eteeapp.repository.ApplicantRepository;
 import com.caps.eteeapp.repository.DocumentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
@@ -20,27 +20,25 @@ public class DocumentService {
     private DocumentRepository documentRepository;
 
     @Autowired
-    private ApplicantApplicationRepository applicationRepository;
+    private ApplicantRepository applicantRepository;
 
     @Autowired
     private FileStorageService fileStorageService;
 
-    public List<Document> getDocumentsByApplicationId(Long applicationId) {
-        return documentRepository.findByApplication_ApplicationId(applicationId);
+    public List<Document> getDocumentsByApplicantId(Long applicantId) {
+        return documentRepository.findByApplicant_ApplicantId(applicantId);
     }
 
-    public Document uploadDocument(Long applicationId, String documentType, MultipartFile file) {
-        // Validate application exists
-        Optional<ApplicantApplication> applicationOpt = applicationRepository.findById(applicationId);
-        if (!applicationOpt.isPresent()) {
-            throw new RuntimeException("Application not found with id " + applicationId);
+    public Document uploadDocument(Long applicantId, String documentType, MultipartFile file) {
+        Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
+        if (!applicantOpt.isPresent()) {
+            throw new RuntimeException("Applicant not found with id " + applicantId);
         }
-
 
         String fileName = fileStorageService.storeFile(file);
 
         Document document = new Document();
-        document.setApplication(applicationOpt.get());
+        document.setApplicant(applicantOpt.get());
         document.setDocumentType(documentType);
         document.setFilePath(fileName);
         document.setFileName(file.getOriginalFilename());
@@ -59,7 +57,6 @@ public class DocumentService {
     }
 
     public void deleteDocument(Long documentId) {
-        // Only delete metadata from database, keep file on disk
         documentRepository.deleteById(documentId);
     }
 }

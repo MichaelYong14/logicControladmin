@@ -12,8 +12,8 @@ public class ApplicationCoursePreference {
     private Long preferenceId;
 
     @ManyToOne
-    @JoinColumn(name = "application_id", nullable = false)
-    private ApplicantApplication application;
+    @JoinColumn(name = "applicant_id", nullable = false) // Reference applicantId instead of applicationId
+    private Applicant applicant;
 
     @ManyToOne
     @JoinColumn(name = "course_id", nullable = false)
@@ -23,9 +23,15 @@ public class ApplicationCoursePreference {
     @Enumerated(EnumType.STRING)
     private PriorityOrder priorityOrder;
 
+    @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    private Status status = Status.PENDING;
+
     public enum PriorityOrder {
         FIRST, SECOND, THIRD
     }
 
-    // Getters and setters...
+    public enum Status {
+        PENDING, REVIEWED, ACCEPTED, REJECTED
+    }
 }

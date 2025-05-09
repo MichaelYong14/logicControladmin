@@ -2,6 +2,9 @@ package com.caps.eteeapp.model;
 
 import jakarta.persistence.*;
 import java.util.Date;
+import lombok.Data;
+
+@Data
 
 @Entity
 public class Evaluation {
@@ -21,6 +24,10 @@ public class Evaluation {
     @ManyToOne
     @JoinColumn(name = "evaluator_id")
     private Evaluator evaluator;
+
+    @ManyToOne
+    @JoinColumn(name = "applicant_id", nullable = false)
+    private Applicant applicant;
 
     @Enumerated(EnumType.STRING)
     private EvaluationStatus evaluationStatus;

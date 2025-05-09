@@ -14,7 +14,7 @@ public class EvaluatorService {
     private EvaluatorRepository evaluatorRepository;
 
     public Evaluator registerEvaluator(Evaluator evaluator) {
-        // Save the evaluator with plaintext password (for testing purposes)
+        // Save the evaluator without modifying the isAdmin field
         return evaluatorRepository.save(evaluator);
     }
 
@@ -24,5 +24,14 @@ public class EvaluatorService {
             return evaluator;
         }
         return Optional.empty();
+    }
+
+    public Optional<Evaluator> findEvaluatorById(Long evaluatorId) {
+        return evaluatorRepository.findById(evaluatorId);
+    }
+
+    public Evaluator updateAdminStatus(Evaluator evaluator, boolean isAdmin) {
+        evaluator.setAdmin(isAdmin);
+        return evaluatorRepository.save(evaluator);
     }
 }

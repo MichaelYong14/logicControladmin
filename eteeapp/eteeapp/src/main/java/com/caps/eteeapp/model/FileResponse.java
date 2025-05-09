@@ -10,7 +10,7 @@ import java.util.Date;
 public class FileResponse {
     // Document database information
     private Long documentId;
-    private Long applicationId;
+    private Long applicantId; // Changed from applicationId to applicantId
     private String documentType;
     private Date uploadDate;
 
@@ -27,7 +27,7 @@ public class FileResponse {
     public static FileResponse fromDocument(Document document, String downloadUrl) {
         return FileResponse.builder()
                 .documentId(document.getDocumentId())
-                .applicationId(document.getApplication().getApplicationId())
+                .applicantId(document.getApplicant().getApplicantId()) // Updated to use applicantId
                 .documentType(document.getDocumentType())
                 .uploadDate(document.getUploadDate())
                 .fileName(document.getFileName())

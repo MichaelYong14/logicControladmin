@@ -13,8 +13,8 @@ public class Document {
     private Long documentId;
 
     @ManyToOne
-    @JoinColumn(name = "application_id")
-    private ApplicantApplication application;
+    @JoinColumn(name = "applicant_id", nullable = false) // Reference applicantId instead of applicationId
+    private Applicant applicant;
 
     private String documentType;
 

@@ -13,8 +13,10 @@ public class ApplicantService {
     @Autowired
     private ApplicantRepository applicantRepository;
 
-    public Applicant registerApplicant(Applicant applicant) {
-        // Save the applicant with plaintext password (for testing purposes)
+    public Applicant registerApplicant(String email, String password) {
+        Applicant applicant = new Applicant();
+        applicant.setEmail(email);
+        applicant.setPassword(password);
         return applicantRepository.save(applicant);
     }
 
@@ -24,5 +26,37 @@ public class ApplicantService {
             return applicant;
         }
         return Optional.empty();
+    }
+
+    public Optional<Applicant> findApplicantById(Long applicantId) {
+        return applicantRepository.findById(applicantId);
+    }
+
+    public Applicant updateApplicant(Applicant existingApplicant, Applicant updatedApplicant) {
+        if (updatedApplicant.getFirstName() != null) {
+            existingApplicant.setFirstName(updatedApplicant.getFirstName());
+        }
+        if (updatedApplicant.getMiddleInitial() != null) {
+            existingApplicant.setMiddleInitial(updatedApplicant.getMiddleInitial());
+        }
+        if (updatedApplicant.getLastName() != null) {
+            existingApplicant.setLastName(updatedApplicant.getLastName());
+        }
+        if (updatedApplicant.getContactNumber() != null) {
+            existingApplicant.setContactNumber(updatedApplicant.getContactNumber());
+        }
+        if (updatedApplicant.getAddress() != null) {
+            existingApplicant.setAddress(updatedApplicant.getAddress());
+        }
+        if (updatedApplicant.getProfileDetails() != null) {
+            existingApplicant.setProfileDetails(updatedApplicant.getProfileDetails());
+        }
+        if (updatedApplicant.getDateOfBirth() != null) {
+            existingApplicant.setDateOfBirth(updatedApplicant.getDateOfBirth());
+        }
+        if (updatedApplicant.getGender() != null) {
+            existingApplicant.setGender(updatedApplicant.getGender());
+        }
+        return applicantRepository.save(existingApplicant);
     }
 }

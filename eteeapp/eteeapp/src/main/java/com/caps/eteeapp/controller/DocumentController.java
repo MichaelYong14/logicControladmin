@@ -29,14 +29,12 @@ public class DocumentController {
     @PostMapping("/upload")
     public ResponseEntity<?> uploadDocuments(
             @RequestParam("files") MultipartFile[] files,
-            @RequestParam("applicationId") Long applicationId,
+            @RequestParam("applicantId") Long applicantId,
             @RequestParam("documentType") String documentType) {
-
 
         if (files.length == 0) {
             return ResponseEntity.badRequest().body("No files were uploaded");
         }
-
 
         for (MultipartFile file : files) {
             if (file.getSize() > 15 * 1024 * 1024) { // 15MB in bytes
@@ -46,7 +44,7 @@ public class DocumentController {
 
         List<FileResponse> responses = Arrays.stream(files)
                 .map(file -> {
-                    Document document = documentService.uploadDocument(applicationId, documentType, file);
+                    Document document = documentService.uploadDocument(applicantId, documentType, file);
                     String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
                             .path("/api/documents/")
                             .path(document.getDocumentId().toString())
@@ -56,24 +54,24 @@ public class DocumentController {
                 })
                 .collect(Collectors.toList());
 
-        // Return a single object for single upload, or a list for multiple uploads
         return ResponseEntity.ok(files.length == 1 ? responses.get(0) : responses);
     }
 
-
+    @GetMapping("/applicant/{applicantId}")
+    public ResponseEntity<List<Document>> getDocumentsByApplicantId(@PathVariable Long applicantId) {
+        List<Document> documents = documentService.getDocumentsByApplicantId(applicantId);
+        return ResponseEntity.ok(documents);
+    }
 
     @GetMapping("/{id}")
     public ResponseEntity<Resource> downloadFile(@PathVariable Long id, HttpServletRequest request) {
-
         Resource resource = documentService.getDocumentFile(id);
-
 
         String contentType = null;
         try {
             contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
         } catch (IOException ex) {
         }
-
 
         if (contentType == null) {
             contentType = "application/octet-stream";
@@ -89,11 +87,5 @@ public class DocumentController {
     public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         documentService.deleteDocument(id);
         return ResponseEntity.noContent().build();
-    }
-
-    @GetMapping("/application/{applicationId}")
-    public ResponseEntity<List<Document>> getDocumentsByApplicationId(@PathVariable Long applicationId) {
-        List<Document> documents = documentService.getDocumentsByApplicationId(applicationId);
-        return ResponseEntity.ok(documents);
     }
 }
