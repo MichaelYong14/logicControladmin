@@ -7,7 +7,6 @@ import useResponseHandler from "./utils/useResponseHandler";
 function App() {
   return (
     <BrowserRouter>
-      <CssBaseline />
       <AppRoutes />
     </BrowserRouter>
   );

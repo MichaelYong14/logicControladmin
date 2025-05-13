@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useForm } from "react-hook-form";
 import { yupResolver } from "@hookform/resolvers/yup";
@@ -7,9 +7,11 @@ import {
   Button,
   Divider,
   InputLabel,
+  Snackbar,
   Stack,
   ToggleButtonGroup,
   Typography,
+  Alert,
 } from "@mui/material";
 import { StyledPaper, StyledTextField, StyledToggleButton } from "../LoginForm";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -21,16 +23,23 @@ const schema = yup.object().shape({
   address: yup.string().required("Address is required"),
   contactNumber: yup
     .string()
-    .matches(/^09\d{9}$/, "Invalid contact number") // Philippine format: 09123456789
+    .matches(/^09\d{9}$/, "Invalid contact number")
     .required("Contact number is required"),
   birthDate: yup.date().required("Date of birth is required"),
 });
 
-const SetUpProfile = ({ handleSuccess, handleError }) => {
+const SetUpProfile = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { applicantId } = location.state || {};
+  const { applicantId, showCompleteProfileSnackbar } = location.state || {};
   const [gender, setGender] = useState("");
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+
+  useEffect(() => {
+    if (showCompleteProfileSnackbar) {
+      setSnackbarOpen(true);
+    }
+  }, [showCompleteProfileSnackbar]);
 
   const {
     register,
@@ -47,6 +56,7 @@ const SetUpProfile = ({ handleSuccess, handleError }) => {
   };
 
   const onSubmit = async (data) => {
+    console.log("applicant ID", applicantId);
     try {
       const date = new Date(data.birthDate);
       const formattedDate = `${date.getFullYear()}-${(date.getMonth() + 1)
@@ -60,35 +70,22 @@ const SetUpProfile = ({ handleSuccess, handleError }) => {
         address: data.address,
         contactNumber: data.contactNumber,
         dateOfBirth: formattedDate,
-        gender: gender.toUpperCase(), // "MALE" or "FEMALE"
+        gender: gender.toUpperCase(),
+        //TODO: Update THe Design, pls double check if there is profiel details input in the
         profileDetails: "Software Engineer",
       };
-      console.log(payload);
+      console.log("payload", payload);
 
-      const response = await axios.patch(
-        //TODO: Put Correct endpoint
+      await axios.patch(
         `http://localhost:8080/api/applicants/${applicantId}/complete-profile`,
         payload
       );
 
       navigate("/homepage");
-
-      if (handleSuccess) {
-        handleSuccess("Successfully completed the profile. Welcome!");
-      }
-
-      // Delay navigation by 2 seconds (or whatever duration you prefer)
-      setTimeout(() => {
-        navigate("/homepage"); // Navigate after showing Snackbar
-      }, 2000); // 2000ms = 2 seconds
     } catch (error) {
-      if (handleError) {
-        handleError("Failed to complete profile. Please try again.");
-      }
+      console.error("Profile setup failed:", error);
     }
   };
-
-  console.log(applicantId);
 
   return (
     <StyledPaper elevation={5} sx={{ maxWidth: 900 }}>
@@ -185,6 +182,17 @@ const SetUpProfile = ({ handleSuccess, handleError }) => {
           Save & Continue
         </Button>
       </form>
+
+      <Snackbar
+        open={snackbarOpen}
+        autoHideDuration={4000}
+        onClose={() => setSnackbarOpen(false)}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+      >
+        <Alert severity="info" onClose={() => setSnackbarOpen(false)}>
+          Please complete your profile first
+        </Alert>
+      </Snackbar>
     </StyledPaper>
   );
 };
