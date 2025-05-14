@@ -1,23 +1,17 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { 
   Typography, 
   Box, 
   Button, 
-  TextField, 
   Grid, 
   Paper, 
   Stack,
-  MenuItem,
-  styled,
   List,
   ListItem,
   ListItemText,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Modal,
-  Divider
+  Divider,
+  styled
 } from "@mui/material";
 import { UploadFile } from "@mui/icons-material";
 import axios from "axios";
@@ -26,6 +20,7 @@ import MinimalLayout from "../../templates/MinimalLayout";
 import backgroundImage from "../../assets/login-bg.png";
 import logo from "../../assets/logo.png";
 import useResponseHandler from "../../utils/useResponseHandler";
+import CourseSelectionDialog from "../../components/OrganizedCourseDialog";
 
 // Styled components
 const ApplicationPaper = styled(Paper)(({ theme }) => ({
@@ -68,14 +63,6 @@ const UploadButton = styled(Button)(({ theme }) => ({
   }
 }));
 
-const StyledTextField = styled(TextField)({
-  backgroundColor: "#f5f5f5",
-  borderRadius: "4px",
-  "& .MuiOutlinedInput-root": {
-    borderRadius: "4px",
-  }
-});
-
 // Styled components for the success modal
 const SuccessModal = styled(Modal)({
   display: "flex",
@@ -113,7 +100,6 @@ const ApplicationForm = () => {
   const navigate = useNavigate();
   const { handleSuccess, handleError, snackbar } = useResponseHandler();
   const [applicantId, setApplicantId] = useState(null);
-  const [applicationId, setApplicationId] = useState(null);
   const [userData, setUserData] = useState({
     name: "",
     email: "",
@@ -128,6 +114,67 @@ const ApplicationForm = () => {
   const [successModalOpen, setSuccessModalOpen] = useState(false);
 
   const priorityOrders = ["FIRST", "SECOND", "THIRD"];
+
+  const fetchApplicantData = useCallback(async (id) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/applicants/${id}`);
+      setUserData({
+        name: `${response.data.firstName} ${response.data.lastName}`,
+        email: response.data.email,
+      });
+    } catch (error) {
+      console.error("Error fetching applicant data:", error);
+      handleError("Failed to load applicant data");
+    }
+  }, [handleError]);
+
+  const fetchCoursesFromBackend = useCallback(async () => {
+    try {
+      const response = await axios.get("http://localhost:8080/api/courses");
+      const processedCourses = response.data.map((course) => {
+        const name = course.courseName.toLowerCase();
+        let department = "";
+
+        if (name.includes("business") || name.includes("accounting") || name.includes("management")) {
+          department = "College of Management, Business and Accountancy";
+        } else if (name.includes("computer") || name.includes("information") || name.includes("technology")) {
+          department = "College of Computer Studies";
+        } else if (name.includes("education") || name.includes("art") || name.includes("science")) {
+          department = "College of Arts, Sciences, and Education";
+        } else if (name.includes("engineering") || name.includes("architecture")) {
+          department = "College of Engineering & Architecture";
+        } else {
+          department = "Other Programs";
+        }
+
+        return {
+          ...course,
+          department: department,
+          courseCode: course.courseCode || `CRS-${course.courseId}`, // Add course code if not present
+        };
+      });
+
+      setAvailableCourses(processedCourses);
+    } catch (error) {
+      console.error("Error fetching courses:", error);
+      handleError("Failed to load courses");
+    }
+  }, [handleError]);
+
+  const fetchUploadedDocuments = useCallback(async (applicantId) => {
+    try {
+      const response = await axios.get(`http://localhost:8080/api/documents/applicant/${applicantId}`);
+      const documents = response.data.map((doc) => ({
+        name: doc.fileName,
+        id: doc.documentId,
+        downloadUrl: doc.downloadUrl,
+      }));
+      setFiles(documents);
+    } catch (error) {
+      console.error("Error fetching uploaded documents:", error);
+      handleError("Failed to load uploaded documents");
+    }
+  }, [handleError]);
 
   useEffect(() => {
     const storedApplicantId = localStorage.getItem("applicantId");
@@ -151,46 +198,8 @@ const ApplicationForm = () => {
 
     // Fetch uploaded documents for the applicant
     fetchUploadedDocuments(storedApplicantId);
-  }, [navigate, handleError]);
+  }, [navigate, handleError, fetchApplicantData, fetchCoursesFromBackend, fetchUploadedDocuments]);
 
-  const fetchCoursesFromBackend = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/api/courses");
-      setAvailableCourses(response.data);
-    } catch (error) {
-      console.error("Error fetching courses:", error);
-      handleError("Failed to load courses");
-    }
-  };
-
-  const fetchApplicantData = async (id) => {
-    try {
-      const response = await axios.get(`http://localhost:8080/api/applicants/${id}`);
-      setUserData({
-        name: `${response.data.firstName} ${response.data.lastName}`,
-        email: response.data.email,
-      });
-    } catch (error) {
-      console.error("Error fetching applicant data:", error);
-      handleError("Failed to load applicant data");
-    }
-  };
-
-  // const createNewApplication = async (applicantId) => {
-  //   try {
-  //     const response = await axios.post("http://localhost:8080/api/applications", {
-  //       applicantId: applicantId,
-  //       status: "DRAFT"
-  //     });
-      
-  //     setApplicationId(response.data.applicationId);
-  //     localStorage.setItem("applicationId", response.data.applicationId); // Persist applicationId
-  //   } catch (error) {
-  //     console.error("Error creating application:", error);
-  //     handleError("Failed to create application");
-  //   }
-  // };
-  
   const fetchCoursePreferences = async (applicantId) => {
     try {
       const response = await axios.get(`http://localhost:8080/api/preferences/applicant/${applicantId}`);
@@ -208,28 +217,9 @@ const ApplicationForm = () => {
     }
   };
 
-  const fetchUploadedDocuments = async (applicantId) => {
-    try {
-      const response = await axios.get(`http://localhost:8080/api/documents/applicant/${applicantId}`);
-      const documents = response.data.map((doc) => ({
-        name: doc.fileName,
-        id: doc.documentId,
-        downloadUrl: doc.downloadUrl,
-      }));
-      setFiles(documents);
-    } catch (error) {
-      console.error("Error fetching uploaded documents:", error);
-      handleError("Failed to load uploaded documents");
-    }
-  };
-
   const openCourseDialog = (priorityIndex) => {
     setCurrentPriorityIndex(priorityIndex);
     setCourseDialogOpen(true);
-  };
-
-  const handleCourseSelection = (course) => {
-    setSelectedCourse(course);
   };
 
   const handleDialogClose = () => {
@@ -279,12 +269,17 @@ const ApplicationForm = () => {
   const handleFileUpload = async (event) => {
     const fileList = Array.from(event.target.files);
 
+    if (fileList.length === 0) {
+      handleError("No files selected for upload.");
+      return;
+    }
+
     // Prepare form data for file upload
     const formData = new FormData();
     fileList.forEach((file) => {
       formData.append("files", file);
     });
-    formData.append("applicantId", applicantId);
+    formData.append("applicantId", applicantId); // Updated to use applicantId
     formData.append("documentType", "General"); // Example document type
 
     try {
@@ -316,7 +311,7 @@ const ApplicationForm = () => {
       setFiles((prevFiles) => [...prevFiles, ...uploadedFiles]);
     } catch (error) {
       console.error("Error uploading files:", error);
-      handleError("Failed to upload files");
+      handleError("Failed to upload files. Please try again.");
     }
   };
 
@@ -367,16 +362,6 @@ const ApplicationForm = () => {
     navigate("/ApplicationTrack");
   };
 
-  // Get the course name for a given priority
-  const getCourseNameByPriority = (priority) => {
-    const preference = coursePreferences.find(pref => pref.priorityOrder === priority);
-    if (preference) {
-      const course = availableCourses.find(c => c.courseId === preference.course.courseId);
-      return course ? course.courseName : "Course not found";
-    }
-    return "";
-  };
-
   return (
     <MinimalLayout backgroundImage={backgroundImage}>
       <Stack alignItems="center" spacing={2} sx={{ width: "100%" }}>
@@ -411,26 +396,65 @@ const ApplicationForm = () => {
                 <Box>
                   <Typography variant="subtitle2" gutterBottom>Course Preference(s):</Typography>
                   <Stack spacing={2} sx={{ mt: 1 }}>
-                    {priorityOrders.map((priority, index) => (
-                      <Box key={index} sx={{ display: "flex", alignItems: "center" }}>
-                        <StyledTextField
-                          size="small"
-                          value={getCourseNameByPriority(priority)}
-                          placeholder={`Course ${index + 1}`}
-                          variant="outlined"
-                          sx={{ width: "60%", mr: 1 }}
-                          InputProps={{
-                            readOnly: true,
+                    {priorityOrders.map((priority, index) => {
+                      // Find course information for this priority
+                      const preference = coursePreferences.find(pref => pref.priorityOrder === priority);
+                      const course = preference ? availableCourses.find(c => c.courseId === preference.course.courseId) : null;
+                      
+                      return (
+                        <Box 
+                          key={index} 
+                          sx={{ 
+                            display: "flex", 
+                            alignItems: "center",
+                            border: "1px solid #e0e0e0",
+                            borderRadius: 1,
+                            p: 1,
+                            backgroundColor: "#f9f9f9"
                           }}
-                        />
-                        <CourseButton 
-                          size="small"
-                          onClick={() => openCourseDialog(index)}
                         >
-                          Choose
-                        </CourseButton>
-                      </Box>
-                    ))}
+                          <Box sx={{ flexGrow: 1 }}>
+                            <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                              Priority {index + 1}
+                            </Typography>
+                            {course ? (
+                              <>
+                                <Typography variant="body1" fontWeight="medium">
+                                  {course.courseName}
+                                </Typography>
+                                <Typography variant="body2" color="text.secondary">
+                                  {course.courseCode} · {course.department}
+                                </Typography>
+                                {course.majors && course.majors.length > 0 && (
+                                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                                    Available Majors: {course.majors.join(', ')}
+                                  </Typography>
+                                )}
+                              </>
+                            ) : (
+                              <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                                No course selected
+                              </Typography>
+                            )}
+                          </Box>
+                          <CourseButton 
+                            size="small"
+                            onClick={() => openCourseDialog(index)}
+                            variant={course ? "outlined" : "contained"}
+                            sx={{ 
+                              minWidth: 100,
+                              ...(course && {
+                                color: "#800000",
+                                borderColor: "#800000",
+                                backgroundColor: "transparent"
+                              })
+                            }}
+                          >
+                            {course ? "Change" : "Choose"}
+                          </CourseButton>
+                        </Box>
+                      );
+                    })}
                   </Stack>
                 </Box>
               </Stack>
@@ -458,23 +482,60 @@ const ApplicationForm = () => {
                 <Box>
                   <Typography variant="subtitle2" gutterBottom>Files Uploaded</Typography>
                   {files.length > 0 ? (
-                    <List dense sx={{ bgcolor: "#f5f5f5", borderRadius: 1 }}>
-                      {files.map((file) => (
-                        <ListItem key={file.id}>
-                          <ListItemText
-                            primary={
-                              <a href={file.downloadUrl} target="_blank" rel="noopener noreferrer">
-                                {file.name}
-                              </a>
-                            }
-                          />
-                        </ListItem>
+                    <List dense sx={{ 
+                      bgcolor: "#f5f5f5", 
+                      borderRadius: 1,
+                      border: "1px solid #e0e0e0",
+                      maxHeight: 200,
+                      overflow: "auto"
+                    }}>
+                      {files.map((file, index) => (
+                        <React.Fragment key={file.id}>
+                          {index > 0 && <Divider component="li" />}
+                          <ListItem>
+                            <ListItemText
+                              primary={
+                                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                                  <Box 
+                                    sx={{ 
+                                      width: 8, 
+                                      height: 8, 
+                                      borderRadius: '50%', 
+                                      bgcolor: '#800000',
+                                      mr: 1 
+                                    }} 
+                                  />
+                                  <a 
+                                    href={file.downloadUrl} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    style={{ 
+                                      color: '#800000', 
+                                      textDecoration: 'none',
+                                      fontWeight: 500
+                                    }}
+                                  >
+                                    {file.name}
+                                  </a>
+                                </Box>
+                              }
+                            />
+                          </ListItem>
+                        </React.Fragment>
                       ))}
                     </List>
                   ) : (
-                    <Typography variant="body2" color="text.secondary">
-                      No files uploaded yet
-                    </Typography>
+                    <Box sx={{ 
+                      bgcolor: "#f5f5f5", 
+                      p: 2, 
+                      borderRadius: 1,
+                      border: "1px dashed #cccccc",
+                      textAlign: "center"
+                    }}>
+                      <Typography variant="body2" color="text.secondary">
+                        No files uploaded yet
+                      </Typography>
+                    </Box>
                   )}
                 </Box>
               </Stack>
@@ -493,46 +554,15 @@ const ApplicationForm = () => {
       </Stack>
 
       {/* Course Selection Dialog */}
-      <Dialog 
-        open={courseDialogOpen} 
+      <CourseSelectionDialog
+        open={courseDialogOpen}
         onClose={handleDialogClose}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          <Typography variant="h6">
-            Select Course for {currentPriorityIndex !== null ? `Priority ${currentPriorityIndex + 1}` : ''}
-          </Typography>
-        </DialogTitle>
-        <DialogContent>
-          <List>
-            {availableCourses.map((course) => (
-              <ListItem 
-                button 
-                key={course.courseId}
-                onClick={() => handleCourseSelection(course)}
-                selected={selectedCourse && selectedCourse.courseId === course.courseId}
-                sx={{
-                  bgcolor: selectedCourse && selectedCourse.courseId === course.courseId ? '#f0f0f0' : 'transparent',
-                  borderRadius: 1
-                }}
-              >
-                <ListItemText primary={course.courseName} />
-              </ListItem>
-            ))}
-          </List>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleDialogClose}>Cancel</Button>
-          <Button 
-            onClick={handleDialogConfirm}
-            disabled={!selectedCourse}
-            sx={{ color: "#800000" }}
-          >
-            Confirm
-          </Button>
-        </DialogActions>
-      </Dialog>
+        onConfirm={handleDialogConfirm}
+        availableCourses={availableCourses}
+        priorityIndex={currentPriorityIndex}
+        selectedCourse={selectedCourse}
+        setSelectedCourse={setSelectedCourse}
+      />
       
       {/* Success Modal */}
       <SuccessModal

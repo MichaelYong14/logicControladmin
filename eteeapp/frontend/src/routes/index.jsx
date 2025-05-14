@@ -8,6 +8,7 @@ import ProtectedRoute from "./ProtectedRoutes";
 import ApplicationTrack from "../pages/ApplicationTrack";
 import ApplicationForm from "../pages/AppCoursePreference";
 import ProgramShowcase from "../pages/ProgramShowcase";
+import OrganizedCourseDialog from "../components/OrganizedCourseDialog"; // Corrected path
 
 const AppRoutes = () => {
   return useRoutes([
@@ -52,6 +53,14 @@ const AppRoutes = () => {
       element: (
         <ProtectedRoute>
           <ApplicationTrack />
+        </ProtectedRoute>
+      ),
+    },
+    {
+      path: "/OrganizedCourseDialog",
+      element: (
+        <ProtectedRoute>
+          <OrganizedCourseDialog />
         </ProtectedRoute>
       ),
     },
