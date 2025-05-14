@@ -28,7 +28,7 @@ public class FileResponse {
         return FileResponse.builder()
                 .documentId(document.getDocumentId())
                 .applicantId(document.getApplicant().getApplicantId()) // Updated to use applicantId
-                .documentType(document.getDocumentType())
+                .documentType(document.getDocumentType().name()) // Convert enum to String
                 .uploadDate(document.getUploadDate())
                 .fileName(document.getFileName())
                 .fileType(document.getFileType())

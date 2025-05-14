@@ -2,6 +2,7 @@ package com.caps.eteeapp.service;
 
 import com.caps.eteeapp.model.Applicant;
 import com.caps.eteeapp.model.Document;
+import com.caps.eteeapp.model.DocumentType;
 import com.caps.eteeapp.repository.ApplicantRepository;
 import com.caps.eteeapp.repository.DocumentRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class DocumentService {
 
         Document document = new Document();
         document.setApplicant(applicantOpt.get());
-        document.setDocumentType(documentType);
+        document.setDocumentType(DocumentType.valueOf(documentType)); // Use enum
         document.setFilePath(fileName);
         document.setFileName(file.getOriginalFilename());
         document.setUploadDate(new Date());

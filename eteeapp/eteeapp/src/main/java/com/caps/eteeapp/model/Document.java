@@ -16,7 +16,8 @@ public class Document {
     @JoinColumn(name = "applicant_id", nullable = false) // Reference applicantId instead of applicationId
     private Applicant applicant;
 
-    private String documentType;
+    @Enumerated(EnumType.STRING)
+    private DocumentType documentType;
 
     private String filePath;
 
