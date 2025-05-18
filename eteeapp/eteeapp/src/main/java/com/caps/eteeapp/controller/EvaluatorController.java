@@ -22,20 +22,17 @@ public class EvaluatorController {
         return ResponseEntity.ok(registeredEvaluator);
     }
 
+    // In EvaluatorController.java
     @PostMapping("/login")
-    public ResponseEntity<String> loginEvaluator(@RequestBody Evaluator loginRequest) {
+    public ResponseEntity<?> loginEvaluator(@RequestBody Evaluator loginRequest) {
         Optional<Evaluator> evaluator = evaluatorService.loginEvaluator(loginRequest.getEmail(), loginRequest.getPassword());
         if (evaluator.isPresent()) {
-            if (evaluator.get().isAdmin()) {
-                return ResponseEntity.ok("Login successful!");
-            } else {
-                return ResponseEntity.ok("Your registration is being processed. Please wait for your approval as admin.");
-            }
+            return ResponseEntity.ok(evaluator.get());
         }
         return ResponseEntity.status(401).body("Invalid email or password.");
     }
 
-    @PutMapping("/{evaluatorId}/update-admin-status")
+    @PutMapping("/{evaluatorId}/update-admin-status") //updates isAdmin status
     public ResponseEntity<Evaluator> updateAdminStatus(@PathVariable Long evaluatorId, @RequestParam boolean isAdmin) {
         Optional<Evaluator> evaluator = evaluatorService.findEvaluatorById(evaluatorId);
         if (evaluator.isPresent()) {
@@ -44,4 +41,6 @@ public class EvaluatorController {
         }
         return ResponseEntity.status(404).body(null); // Not Found if evaluatorId does not exist
     }
+
+  
 }
