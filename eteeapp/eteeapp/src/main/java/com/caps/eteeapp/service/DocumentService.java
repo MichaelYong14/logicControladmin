@@ -57,6 +57,11 @@ public class DocumentService {
         return fileStorageService.loadFileAsResource(document.getFilePath());
     }
 
+    public Document getDocumentById(Long id) {
+        return documentRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Document not found with id " + id));
+    }
+
     public void deleteDocument(Long documentId) {
         documentRepository.deleteById(documentId);
     }

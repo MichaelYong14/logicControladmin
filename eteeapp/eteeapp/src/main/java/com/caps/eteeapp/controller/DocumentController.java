@@ -92,7 +92,6 @@ public class DocumentController {
                 .body(resource);
     }
 
-    // Add this endpoint for /download/{id}
     @GetMapping("/download/{id}")
     public ResponseEntity<Resource> downloadDocument(@PathVariable Long id, HttpServletRequest request) {
         Resource resource = documentService.getDocumentFile(id);
@@ -110,6 +109,40 @@ public class DocumentController {
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+    }
+
+    // Add new endpoint for previewing documents in browser
+    @GetMapping("/preview/{id}")
+    public ResponseEntity<Resource> previewDocument(@PathVariable Long id, HttpServletRequest request) {
+        Resource resource = documentService.getDocumentFile(id);
+        Document document = documentService.getDocumentById(id);
+
+        String contentType = null;
+        try {
+            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+        } catch (IOException ex) {
+            // If we can't determine content type, try to infer from file extension
+            String fileName = document.getFileName().toLowerCase();
+            if (fileName.endsWith(".pdf")) {
+                contentType = "application/pdf";
+            } else if (fileName.endsWith(".jpg") || fileName.endsWith(".jpeg")) {
+                contentType = "image/jpeg";
+            } else if (fileName.endsWith(".png")) {
+                contentType = "image/png";
+            } else if (fileName.endsWith(".gif")) {
+                contentType = "image/gif";
+            }
+        }
+
+        if (contentType == null) {
+            contentType = "application/octet-stream";
+        }
+
+        // Key difference from download: we use "inline" instead of "attachment" to preview in browser
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "inline; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
     }
 
