@@ -1,7 +1,20 @@
 package com.caps.eteeapp.model;
 
-import jakarta.persistence.*;
 import java.util.Date;
+import java.util.List;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.Lob;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+import jakarta.persistence.Transient;
 import lombok.Data;
 
 @Data
@@ -19,6 +32,10 @@ public class ApplicantApplication {
     @Temporal(TemporalType.TIMESTAMP)
     private Date dateSubmitted;
 
+    // Add upload_date field to fix date display issues
+    @Temporal(TemporalType.TIMESTAMP)
+    private Date uploadDate;
+
     private String status;
 
     @ManyToOne
@@ -30,5 +47,21 @@ public class ApplicantApplication {
     @Lob
     private String applicationNotes;
 
-    // Getters and setters...
+    // Add transient fields to hold related data that won't be persisted in this table
+    @Transient
+    private List<ApplicationCoursePreference> coursePreferences;
+
+    @Transient
+    private List<Document> documents;
+
+    // Pre-persist hook to ensure uploadDate is set when creating new applications
+    @PrePersist
+    protected void onCreate() {
+        if (uploadDate == null) {
+            uploadDate = new Date();
+        }
+        if (dateSubmitted == null) {
+            dateSubmitted = uploadDate;
+        }
+    }
 }
