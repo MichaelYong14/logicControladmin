@@ -30,10 +30,41 @@ public class EvaluationController {
     @PostMapping("/forward-application/{applicantId}")
     public ResponseEntity<List<Evaluation>> forwardApplication(
             @PathVariable Long applicantId,
-            @RequestBody Map<String, Long> requestBody) {
-        Long departmentId = requestBody.get("departmentId");
-        List<Evaluation> evaluations = evaluationService.forwardApplicantToDepartment(applicantId, departmentId);
-        return ResponseEntity.ok(evaluations);
+            @RequestBody Map<String, Object> requestBody) {
+        try {
+            // Handle both courseId and departmentId for backward compatibility
+            Long departmentId = null;
+            Long courseId = null;
+            
+            if (requestBody.containsKey("departmentId")) {
+                Object deptIdObj = requestBody.get("departmentId");
+                departmentId = deptIdObj instanceof Number ? ((Number) deptIdObj).longValue() : Long.valueOf(deptIdObj.toString());
+            }
+            
+            if (requestBody.containsKey("courseId")) {
+                Object courseIdObj = requestBody.get("courseId");
+                courseId = courseIdObj instanceof Number ? ((Number) courseIdObj).longValue() : Long.valueOf(courseIdObj.toString());
+            }
+            
+            List<Evaluation> evaluations;
+            
+            if (courseId != null) {
+                // If courseId is provided, use it to create evaluation for specific course
+                evaluations = evaluationService.forwardApplicantToCourse(applicantId, courseId);
+            } else if (departmentId != null) {
+                // If departmentId is provided, use existing method
+                evaluations = evaluationService.forwardApplicantToDepartment(applicantId, departmentId);
+            } else {
+                return ResponseEntity.badRequest().body(null);
+            }
+            
+            return ResponseEntity.ok(evaluations);
+        } catch (Exception e) {
+            // Log the error for debugging
+            System.err.println("Error forwarding application for applicant " + applicantId + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body(null);
+        }
     }
 
     @PostMapping("/forward-to-department/{applicantId}")

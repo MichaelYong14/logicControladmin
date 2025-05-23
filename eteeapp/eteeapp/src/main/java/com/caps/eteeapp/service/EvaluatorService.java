@@ -6,6 +6,8 @@ import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.caps.eteeapp.model.Department;
+import com.caps.eteeapp.model.Evaluation;
 import com.caps.eteeapp.model.Evaluator;
 import com.caps.eteeapp.repository.EvaluatorRepository;
 
@@ -43,5 +45,11 @@ public class EvaluatorService {
     public Evaluator updateAdminStatus(Evaluator evaluator, boolean isAdmin) {
         evaluator.setAdmin(isAdmin);
         return evaluatorRepository.save(evaluator);
+    }
+
+    public List<Evaluation> getEvaluationsByDepartment(Department department) {
+        // This method filters evaluations where the course department 
+        // matches the given department
+        return evaluatorRepository.findEvaluationsByCourseDepartment(department);
     }
 }

@@ -5,11 +5,15 @@ import com.caps.eteeapp.model.ApplicationCoursePreference;
 import com.caps.eteeapp.model.Course;
 import com.caps.eteeapp.model.Department;
 import com.caps.eteeapp.model.Evaluation;
+import com.caps.eteeapp.model.Evaluator;
+import com.caps.eteeapp.model.ApplicantApplication;
 import com.caps.eteeapp.repository.ApplicantRepository;
 import com.caps.eteeapp.repository.ApplicationCoursePreferenceRepository;
 import com.caps.eteeapp.repository.CourseRepository;
 import com.caps.eteeapp.repository.DepartmentRepository;
 import com.caps.eteeapp.repository.EvaluationRepository;
+import com.caps.eteeapp.repository.EvaluatorRepository;
+import com.caps.eteeapp.repository.ApplicantApplicationRepository;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,6 +40,12 @@ public class EvaluationService {
     
     @Autowired
     private CourseRepository courseRepository;
+
+    @Autowired
+    private EvaluatorRepository evaluatorRepository;
+
+    @Autowired
+    private ApplicantApplicationRepository applicationRepository;
 
     // Method to get all evaluations
     public List<Evaluation> getAllEvaluations() {
@@ -71,13 +81,17 @@ public class EvaluationService {
     // Update evaluation status
     public Evaluation updateEvaluationStatus(Evaluation evaluation, Evaluation.EvaluationStatus status) {
         evaluation.setEvaluationStatus(status);
-        evaluation.setDateEvaluated(new Date());
+        if (status != Evaluation.EvaluationStatus.PENDING) {
+            evaluation.setDateEvaluated(new Date());
+        }
         return evaluationRepository.save(evaluation);
     }
 
     // Create a new evaluation
     public Evaluation createEvaluation(Evaluation evaluation) {
-        evaluation.setDateEvaluated(new Date());
+        if (evaluation.getEvaluationStatus() == null) {
+            evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
+        }
         return evaluationRepository.save(evaluation);
     }
 
@@ -85,114 +99,220 @@ public class EvaluationService {
     public Evaluation updateEvaluation(Evaluation existingEvaluation, Evaluation updatedEvaluation) {
         existingEvaluation.setEvaluationStatus(updatedEvaluation.getEvaluationStatus());
         existingEvaluation.setComments(updatedEvaluation.getComments());
-        existingEvaluation.setDateEvaluated(new Date());
         existingEvaluation.setRecommendation(updatedEvaluation.getRecommendation());
+        if (updatedEvaluation.getEvaluationStatus() != Evaluation.EvaluationStatus.PENDING) {
+            existingEvaluation.setDateEvaluated(new Date());
+        }
         if (updatedEvaluation.getEvaluator() != null) {
             existingEvaluation.setEvaluator(updatedEvaluation.getEvaluator());
         }
         return evaluationRepository.save(existingEvaluation);
     }
+
+    // New method to support forwarding to specific course
+    public List<Evaluation> forwardApplicantToCourse(Long applicantId, Long courseId) {
+        try {
+            // Find the applicant
+            Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
+            if (!applicantOpt.isPresent()) {
+                throw new RuntimeException("Applicant not found with ID: " + applicantId);
+            }
+
+            // Find the course
+            Optional<Course> courseOpt = courseRepository.findById(courseId);
+            if (!courseOpt.isPresent()) {
+                throw new RuntimeException("Course not found with ID: " + courseId);
+            }
+
+            Applicant applicant = applicantOpt.get();
+            Course course = courseOpt.get();
+            Department department = course.getDepartment();
+
+            if (department == null) {
+                throw new RuntimeException("Course does not belong to any department");
+            }
+
+            // Find evaluators for the course's department
+            List<Evaluator> evaluators = evaluatorRepository.findByDepartment_DepartmentId(
+                department.getDepartmentId());
+
+            // If no specific evaluators found, try to use department head
+            if (evaluators.isEmpty() && department.getDepartmentHead() != null) {
+                evaluators = List.of(department.getDepartmentHead());
+            }
+
+            if (evaluators.isEmpty()) {
+                throw new RuntimeException("No evaluators found for department: " + 
+                    department.getDepartmentName());
+            }
+
+            List<Evaluation> createdEvaluations = new ArrayList<>();
+
+            // Create evaluations for each evaluator in the department
+            for (Evaluator evaluator : evaluators) {
+                // Check if evaluation already exists
+                Optional<Evaluation> existingEvaluation = findExistingEvaluation(
+                    applicantId, courseId, evaluator.getEvaluatorId());
+
+                if (!existingEvaluation.isPresent()) {
+                    Evaluation evaluation = new Evaluation();
+                    evaluation.setApplicant(applicant);
+                    evaluation.setCourse(course);
+                    evaluation.setEvaluator(evaluator);
+                    evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
+                    
+                    Evaluation savedEvaluation = evaluationRepository.save(evaluation);
+                    createdEvaluations.add(savedEvaluation);
+                } else {
+                    createdEvaluations.add(existingEvaluation.get());
+                }
+            }
+
+            return createdEvaluations;
+
+        } catch (Exception e) {
+            System.err.println("Error in forwardApplicantToCourse: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to forward applicant to course: " + e.getMessage(), e);
+        }
+    }
     
     // Forward applicant to evaluation
     public List<Evaluation> forwardApplicant(Long applicantId) {
-        Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
-        
-        if (!applicantOpt.isPresent()) {
-            throw new RuntimeException("Applicant not found");
-        }
-        
-        Applicant applicant = applicantOpt.get();
-        
-        // Get course preferences for the applicant
-        List<ApplicationCoursePreference> preferences = 
-            preferenceRepository.findByApplicant_ApplicantId(applicantId);
-        
-        // Create evaluations for each preference
-        List<Evaluation> evaluations = new ArrayList<>();
-        for (ApplicationCoursePreference preference : preferences) {
-            Evaluation evaluation = new Evaluation();
-            evaluation.setApplicant(applicant);
-            evaluation.setCourse(preference.getCourse());
-            evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
-            evaluation.setDateEvaluated(new Date());
+        try {
+            // Find the applicant
+            Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
+            if (!applicantOpt.isPresent()) {
+                throw new RuntimeException("Applicant not found with ID: " + applicantId);
+            }
+
+            // Get course preferences for the applicant
+            List<ApplicationCoursePreference> preferences = 
+                preferenceRepository.findByApplicant_ApplicantId(applicantId);
             
-            // If the course has a department with a head evaluator, assign them
-            Department department = preference.getCourse().getDepartment();
-            if (department != null && department.getDepartmentHead() != null) {
-                evaluation.setEvaluator(department.getDepartmentHead());
+            // Create evaluations for each preference
+            List<Evaluation> evaluations = new ArrayList<>();
+            Applicant applicant = applicantOpt.get();
+            
+            for (ApplicationCoursePreference preference : preferences) {
+                Course course = preference.getCourse();
+                Department department = course.getDepartment();
+                
+                // If the course has a department with a head evaluator, assign them
+                if (department != null && department.getDepartmentHead() != null) {
+                    // Check if evaluation already exists
+                    Optional<Evaluation> existingEvaluation = findExistingEvaluation(
+                        applicantId, course.getCourseId(), department.getDepartmentHead().getEvaluatorId());
+
+                    if (!existingEvaluation.isPresent()) {
+                        Evaluation evaluation = new Evaluation();
+                        evaluation.setApplicant(applicant);
+                        evaluation.setCourse(course);
+                        evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
+                        evaluation.setEvaluator(department.getDepartmentHead());
+                        
+                        evaluations.add(evaluationRepository.save(evaluation));
+                    } else {
+                        evaluations.add(existingEvaluation.get());
+                    }
+                }
             }
             
-            evaluations.add(evaluationRepository.save(evaluation));
+            return evaluations;
+
+        } catch (Exception e) {
+            System.err.println("Error in forwardApplicant: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to forward applicant: " + e.getMessage(), e);
         }
-        
-        return evaluations;
     }
     
     // Forward applicant to a specific department
     public List<Evaluation> forwardApplicantToDepartment(Long applicantId, Long departmentId) {
-        Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
-        Optional<Department> departmentOpt = departmentRepository.findById(departmentId);
-        
-        if (!applicantOpt.isPresent() || !departmentOpt.isPresent()) {
-            throw new RuntimeException("Applicant or Department not found");
-        }
-        
-        Applicant applicant = applicantOpt.get();
-        Department department = departmentOpt.get();
-        
-        // Get course preferences for the applicant
-        List<ApplicationCoursePreference> preferences = 
-            preferenceRepository.findByApplicant_ApplicantId(applicant.getApplicantId());
-        
-        // Filter preferences by department
-        List<ApplicationCoursePreference> departmentPreferences = new ArrayList<>();
-        for (ApplicationCoursePreference preference : preferences) {
-            if (preference.getCourse().getDepartment().getDepartmentId().equals(departmentId)) {
-                departmentPreferences.add(preference);
-            }
-        }
-        
-        // If no preferences for this department, use all department courses
-        if (departmentPreferences.isEmpty()) {
-            List<Course> departmentCourses = courseRepository.findByDepartment_DepartmentId(departmentId);
+        try {
+            Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
+            Optional<Department> departmentOpt = departmentRepository.findById(departmentId);
             
-            // Create evaluations for each course in the department
-            List<Evaluation> evaluations = new ArrayList<>();
-            for (Course course : departmentCourses) {
-                Evaluation evaluation = new Evaluation();
-                evaluation.setApplicant(applicant);
-                evaluation.setCourse(course);
-                evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
-                evaluation.setDateEvaluated(new Date());
+            if (!applicantOpt.isPresent()) {
+                throw new RuntimeException("Applicant not found with ID: " + applicantId);
+            }
+            if (!departmentOpt.isPresent()) {
+                throw new RuntimeException("Department not found with ID: " + departmentId);
+            }
+            
+            Applicant applicant = applicantOpt.get();
+            Department department = departmentOpt.get();
+            
+            // Get course preferences for the applicant
+            List<ApplicationCoursePreference> preferences = 
+                preferenceRepository.findByApplicant_ApplicantId(applicant.getApplicantId());
+            
+            // Filter preferences by department
+            List<ApplicationCoursePreference> departmentPreferences = new ArrayList<>();
+            for (ApplicationCoursePreference preference : preferences) {
+                if (preference.getCourse().getDepartment().getDepartmentId().equals(departmentId)) {
+                    departmentPreferences.add(preference);
+                }
+            }
+            
+            // If no preferences for this department, use all department courses
+            if (departmentPreferences.isEmpty()) {
+                List<Course> departmentCourses = courseRepository.findByDepartment_DepartmentId(departmentId);
                 
-                // If the department has a head evaluator, assign them
-                if (department.getDepartmentHead() != null) {
-                    evaluation.setEvaluator(department.getDepartmentHead());
+                // Create evaluations for each course in the department
+                List<Evaluation> evaluations = new ArrayList<>();
+                for (Course course : departmentCourses) {
+                    // Check if evaluation already exists for department head
+                    if (department.getDepartmentHead() != null) {
+                        Optional<Evaluation> existingEvaluation = findExistingEvaluation(
+                            applicantId, course.getCourseId(), department.getDepartmentHead().getEvaluatorId());
+
+                        if (!existingEvaluation.isPresent()) {
+                            Evaluation evaluation = new Evaluation();
+                            evaluation.setApplicant(applicant);
+                            evaluation.setCourse(course);
+                            evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
+                            evaluation.setEvaluator(department.getDepartmentHead());
+                            
+                            evaluations.add(evaluationRepository.save(evaluation));
+                        } else {
+                            evaluations.add(existingEvaluation.get());
+                        }
+                    }
                 }
                 
-                evaluations.add(evaluationRepository.save(evaluation));
+                return evaluations;
+            }
+            
+            // Create evaluations for each preference in the department
+            List<Evaluation> evaluations = new ArrayList<>();
+            for (ApplicationCoursePreference preference : departmentPreferences) {
+                // Check if evaluation already exists for department head
+                if (department.getDepartmentHead() != null) {
+                    Optional<Evaluation> existingEvaluation = findExistingEvaluation(
+                        applicantId, preference.getCourse().getCourseId(), 
+                        department.getDepartmentHead().getEvaluatorId());
+
+                    if (!existingEvaluation.isPresent()) {
+                        Evaluation evaluation = new Evaluation();
+                        evaluation.setApplicant(applicant);
+                        evaluation.setCourse(preference.getCourse());
+                        evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
+                        evaluation.setEvaluator(department.getDepartmentHead());
+                        
+                        evaluations.add(evaluationRepository.save(evaluation));
+                    } else {
+                        evaluations.add(existingEvaluation.get());
+                    }
+                }
             }
             
             return evaluations;
+
+        } catch (Exception e) {
+            System.err.println("Error in forwardApplicantToDepartment: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to forward applicant to department: " + e.getMessage(), e);
         }
-        
-        // Create evaluations for each preference in the department
-        List<Evaluation> evaluations = new ArrayList<>();
-        for (ApplicationCoursePreference preference : departmentPreferences) {
-            Evaluation evaluation = new Evaluation();
-            evaluation.setApplicant(applicant);
-            evaluation.setCourse(preference.getCourse());
-            evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
-            evaluation.setDateEvaluated(new Date());
-            
-            // If the department has a head evaluator, assign them
-            if (department.getDepartmentHead() != null) {
-                evaluation.setEvaluator(department.getDepartmentHead());
-            }
-            
-            evaluations.add(evaluationRepository.save(evaluation));
-        }
-        
-        return evaluations;
     }
 }

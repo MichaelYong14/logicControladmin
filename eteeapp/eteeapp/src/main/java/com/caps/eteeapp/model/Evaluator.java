@@ -11,7 +11,6 @@ import lombok.Data;
 
 @Data
 @Entity
-
 public class Evaluator {
 
     @Id

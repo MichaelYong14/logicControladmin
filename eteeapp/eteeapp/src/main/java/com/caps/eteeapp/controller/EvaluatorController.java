@@ -17,7 +17,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.caps.eteeapp.model.Department;
 import com.caps.eteeapp.model.Evaluator;
+import com.caps.eteeapp.service.DepartmentService;
 import com.caps.eteeapp.service.EvaluatorService;
 
 @CrossOrigin(origins = "*")
@@ -27,6 +29,9 @@ public class EvaluatorController {
 
     @Autowired
     private EvaluatorService evaluatorService;
+    
+    @Autowired
+    private DepartmentService departmentService;
 
     @GetMapping
     public ResponseEntity<List<Evaluator>> getAllEvaluators() {
@@ -76,20 +81,62 @@ public class EvaluatorController {
         }
     }
     
+    @GetMapping("/departments")
+    public ResponseEntity<List<Department>> getAllDepartments() {
+        List<Department> departments = departmentService.getAllDepartments();
+        return ResponseEntity.ok(departments);
+    }
+    
     // Add POST endpoint for registration
     @PostMapping("/register")
-    public ResponseEntity<?> registerEvaluator(@RequestBody Evaluator evaluator) {
+    public ResponseEntity<?> registerEvaluator(@RequestBody RegistrationRequest registrationRequest) {
         try {
+            System.out.println("Registration request received: " + registrationRequest.toString()); // Debug log
+            
+            // Validate required fields
+            if (registrationRequest.getName() == null || registrationRequest.getName().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Name is required");
+            }
+            if (registrationRequest.getEmail() == null || registrationRequest.getEmail().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Email is required");
+            }
+            if (registrationRequest.getPassword() == null || registrationRequest.getPassword().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Password is required");
+            }
+            if (registrationRequest.getDepartment() == null || registrationRequest.getDepartment().trim().isEmpty()) {
+                return ResponseEntity.badRequest().body("Department is required");
+            }
+            
             // Check if email already exists
-            Optional<Evaluator> existingEvaluator = evaluatorService.findByEmail(evaluator.getEmail());
+            Optional<Evaluator> existingEvaluator = evaluatorService.findByEmail(registrationRequest.getEmail());
             if (existingEvaluator.isPresent()) {
                 return ResponseEntity.badRequest().body("Email already registered");
             }
+            
+            // Find department by name
+            Optional<Department> department = departmentService.findByDepartmentName(registrationRequest.getDepartment());
+            if (!department.isPresent()) {
+                System.out.println("Department not found: " + registrationRequest.getDepartment()); // Debug log
+                return ResponseEntity.badRequest().body("Invalid department selected: " + registrationRequest.getDepartment());
+            }
+            
+            // Create new evaluator from registration request
+            Evaluator evaluator = new Evaluator();
+            evaluator.setName(registrationRequest.getName());
+            evaluator.setEmail(registrationRequest.getEmail());
+            evaluator.setPassword(registrationRequest.getPassword());
+            evaluator.setContactNumber(registrationRequest.getContactNumber());
+            evaluator.setRole(registrationRequest.getRole());
+            evaluator.setDepartment(department.get());
+            
+            System.out.println("Saving evaluator: " + evaluator.toString()); // Debug log
             
             // Register the new evaluator
             Evaluator registeredEvaluator = evaluatorService.registerEvaluator(evaluator);
             return ResponseEntity.ok(registeredEvaluator);
         } catch (Exception e) {
+            System.err.println("Registration error: " + e.getMessage()); // Debug log
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
         }
     }
@@ -160,6 +207,46 @@ public class EvaluatorController {
         
         public boolean isAdmin() {
             return isAdmin;
+        }
+    }
+    
+    // Nested class for registration request
+    private static class RegistrationRequest {
+        private String name;
+        private String email;
+        private String password;
+        private String contactNumber;
+        private String role;
+        private String department;
+        
+        // Getters and setters
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getEmail() { return email; }
+        public void setEmail(String email) { this.email = email; }
+        
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+        
+        public String getContactNumber() { return contactNumber; }
+        public void setContactNumber(String contactNumber) { this.contactNumber = contactNumber; }
+        
+        public String getRole() { return role; }
+        public void setRole(String role) { this.role = role; }
+        
+        public String getDepartment() { return department; }
+        public void setDepartment(String department) { this.department = department; }
+        
+        @Override
+        public String toString() {
+            return "RegistrationRequest{" +
+                    "name='" + name + '\'' +
+                    ", email='" + email + '\'' +
+                    ", contactNumber='" + contactNumber + '\'' +
+                    ", role='" + role + '\'' +
+                    ", department='" + department + '\'' +
+                    '}';
         }
     }
 }

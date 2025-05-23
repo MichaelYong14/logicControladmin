@@ -1,12 +1,13 @@
 package com.caps.eteeapp.service;
 
-import com.caps.eteeapp.model.Department;
-import com.caps.eteeapp.repository.DepartmentRepository;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.caps.eteeapp.model.Department;
+import com.caps.eteeapp.repository.DepartmentRepository;
 
 @Service
 public class DepartmentService {
@@ -24,6 +25,10 @@ public class DepartmentService {
 
     public Optional<Department> getDepartmentById(Long id) {
         return departmentRepository.findById(id);
+    }
+
+    public Optional<Department> findByDepartmentName(String departmentName) {
+        return departmentRepository.findByDepartmentName(departmentName);
     }
 
     public Department updateDepartment(Long id, Department updatedDepartment) {
