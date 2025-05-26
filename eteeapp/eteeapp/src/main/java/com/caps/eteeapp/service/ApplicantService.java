@@ -208,4 +208,44 @@ public class ApplicantService {
             return false;
         }
     }
+
+    public boolean resetPasswordDirectly(String email, String newPassword) {
+        logger.info("=== SERVICE: resetPasswordDirectly START ===");
+        logger.info("Input email: '{}', password length: {}", email, newPassword.length());
+        
+        try {
+            logger.info("Calling applicantRepository.findByEmail");
+            Optional<Applicant> applicantOpt = applicantRepository.findByEmail(email);
+            logger.info("Repository returned: {}", applicantOpt.isPresent() ? "Applicant found" : "No applicant found");
+            
+            if (applicantOpt.isPresent()) {
+                Applicant applicant = applicantOpt.get();
+                logger.info("Found applicant - ID: {}, Email: {}", 
+                           applicant.getApplicantId(), applicant.getEmail());
+                
+                logger.info("Updating password directly...");
+                applicant.setPassword(newPassword);
+                
+                // Clear any existing reset tokens
+                applicant.setPasswordResetToken(null);
+                applicant.setPasswordResetTokenExpiry(null);
+                
+                logger.info("Saving updated applicant...");
+                Applicant savedApplicant = applicantRepository.save(applicant);
+                logger.info("Successfully updated applicant ID: {}", savedApplicant.getApplicantId());
+                
+                logger.info("=== SERVICE: resetPasswordDirectly END - SUCCESS ===");
+                return true;
+            } else {
+                logger.warn("=== SERVICE: resetPasswordDirectly END - NO APPLICANT FOUND ===");
+                return false;
+            }
+        } catch (Exception e) {
+            logger.error("=== SERVICE: resetPasswordDirectly END - ERROR ===");
+            logger.error("Exception type: {}", e.getClass().getSimpleName());
+            logger.error("Exception message: {}", e.getMessage());
+            logger.error("Stack trace:", e);
+            return false;
+        }
+    }
 }

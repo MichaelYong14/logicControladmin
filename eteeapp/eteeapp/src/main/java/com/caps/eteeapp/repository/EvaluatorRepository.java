@@ -33,6 +33,9 @@ public interface EvaluatorRepository extends JpaRepository<Evaluator, Long> {
     // Check if evaluator exists by email
     boolean existsByEmail(String email);
     
+    // Find evaluator by password reset token
+    Optional<Evaluator> findByPasswordResetToken(String token);
+    
     // Department filtering query for evaluations only
     @Query("SELECT e FROM Evaluation e JOIN e.course c WHERE c.department = :department")
     List<Evaluation> findEvaluationsByCourseDepartment(@Param("department") Department department);

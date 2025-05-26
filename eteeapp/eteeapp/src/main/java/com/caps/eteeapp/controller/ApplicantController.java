@@ -118,37 +118,85 @@ public class ApplicantController {
         logger.info("Raw request body: {}", request);
         
         String token = request.get("token");
+        String email = request.get("email");
         String newPassword = request.get("password");
+        String newPasswordFromField = request.get("newPassword"); // Alternative field name
+        
+        // Use newPassword if password field is not present
+        if (newPassword == null && newPasswordFromField != null) {
+            newPassword = newPasswordFromField;
+        }
+        
         Map<String, String> response = new HashMap<>();
 
-        logger.info("Extracted token: '{}', password length: {}", token, newPassword != null ? newPassword.length() : "null");
+        logger.info("Extracted - token: '{}', email: '{}', password length: {}", 
+                   token, email, newPassword != null ? newPassword.length() : "null");
 
-        if (token == null || newPassword == null || token.trim().isEmpty() || newPassword.trim().isEmpty()) {
-            logger.warn("Validation failed - token or password is missing");
-            response.put("message", "Token and password are required");
-            return ResponseEntity.badRequest().body(response);
-        }
-
-        try {
-            logger.info("Calling applicantService.resetPassword");
-            boolean passwordReset = applicantService.resetPassword(token, newPassword);
-            logger.info("Service returned passwordReset: {}", passwordReset);
-            
-            if (passwordReset) {
-                response.put("message", "Password has been reset successfully");
-                logger.info("=== RESET PASSWORD REQUEST END - SUCCESS ===");
-                return ResponseEntity.ok(response);
-            } else {
-                response.put("message", "Invalid or expired reset token");
-                logger.info("=== RESET PASSWORD REQUEST END - INVALID TOKEN ===");
+        // Handle token-based reset (from email link)
+        if (token != null && !token.trim().isEmpty()) {
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                logger.warn("Token-based reset: password is missing");
+                response.put("message", "Password is required");
                 return ResponseEntity.badRequest().body(response);
             }
-        } catch (Exception e) {
-            logger.error("=== RESET PASSWORD REQUEST END - ERROR ===");
-            logger.error("Exception details:", e);
-            response.put("message", "An error occurred while resetting your password. Please try again.");
-            response.put("error_details", e.getMessage());
-            return ResponseEntity.status(500).body(response);
+
+            try {
+                logger.info("Calling applicantService.resetPassword with token");
+                boolean passwordReset = applicantService.resetPassword(token, newPassword);
+                logger.info("Service returned passwordReset: {}", passwordReset);
+                
+                if (passwordReset) {
+                    response.put("message", "Password has been reset successfully");
+                    logger.info("=== RESET PASSWORD REQUEST END - SUCCESS ===");
+                    return ResponseEntity.ok(response);
+                } else {
+                    response.put("message", "Invalid or expired reset token");
+                    logger.info("=== RESET PASSWORD REQUEST END - INVALID TOKEN ===");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            } catch (Exception e) {
+                logger.error("=== RESET PASSWORD REQUEST END - ERROR ===");
+                logger.error("Exception details:", e);
+                response.put("message", "An error occurred while resetting your password. Please try again.");
+                return ResponseEntity.status(500).body(response);
+            }
+        }
+        
+        // Handle direct email-based reset (without token)
+        else if (email != null && !email.trim().isEmpty()) {
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                logger.warn("Email-based reset: password is missing");
+                response.put("message", "Password is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            try {
+                logger.info("Calling applicantService.resetPasswordDirectly with email");
+                boolean passwordReset = applicantService.resetPasswordDirectly(email, newPassword);
+                logger.info("Service returned passwordReset: {}", passwordReset);
+                
+                if (passwordReset) {
+                    response.put("message", "Password has been reset successfully");
+                    logger.info("=== RESET PASSWORD REQUEST END - SUCCESS ===");
+                    return ResponseEntity.ok(response);
+                } else {
+                    response.put("message", "Email not found or unable to reset password");
+                    logger.info("=== RESET PASSWORD REQUEST END - EMAIL NOT FOUND ===");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            } catch (Exception e) {
+                logger.error("=== RESET PASSWORD REQUEST END - ERROR ===");
+                logger.error("Exception details:", e);
+                response.put("message", "An error occurred while resetting your password. Please try again.");
+                return ResponseEntity.status(500).body(response);
+            }
+        }
+        
+        // Neither token nor email provided
+        else {
+            logger.warn("Validation failed - neither token nor email provided");
+            response.put("message", "Either token or email is required");
+            return ResponseEntity.badRequest().body(response);
         }
     }
 

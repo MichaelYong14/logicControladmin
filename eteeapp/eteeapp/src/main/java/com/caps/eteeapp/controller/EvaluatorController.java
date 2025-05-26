@@ -22,10 +22,15 @@ import com.caps.eteeapp.model.Evaluator;
 import com.caps.eteeapp.service.DepartmentService;
 import com.caps.eteeapp.service.EvaluatorService;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @CrossOrigin(origins = "*")
 @RestController
 @RequestMapping("/api/evaluators")
 public class EvaluatorController {
+
+    private static final Logger logger = LoggerFactory.getLogger(EvaluatorController.class);
 
     @Autowired
     private EvaluatorService evaluatorService;
@@ -247,6 +252,150 @@ public class EvaluatorController {
                     ", role='" + role + '\'' +
                     ", department='" + department + '\'' +
                     '}';
+        }
+    }
+    
+    @PostMapping("/forgot-password")
+    public ResponseEntity<Map<String, String>> forgotPassword(@RequestBody Map<String, String> request) {
+        logger.info("=== EVALUATOR FORGOT PASSWORD REQUEST START ===");
+        logger.info("Raw request body: {}", request);
+        
+        String email = request.get("email");
+        Map<String, String> response = new HashMap<>();
+
+        logger.info("Extracted email from request: '{}'", email);
+
+        if (email == null || email.trim().isEmpty()) {
+            logger.warn("Email validation failed - email is null or empty");
+            response.put("message", "Email is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        try {
+            logger.info("Calling evaluatorService.generatePasswordResetToken with email: '{}'", email);
+            boolean tokenGenerated = evaluatorService.generatePasswordResetToken(email);
+            logger.info("Service returned tokenGenerated: {}", tokenGenerated);
+            
+            response.put("message", "If an account with this email exists, a password reset link has been sent.");
+            response.put("debug_token_generated", String.valueOf(tokenGenerated));
+            logger.info("=== EVALUATOR FORGOT PASSWORD REQUEST END - SUCCESS ===");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("=== EVALUATOR FORGOT PASSWORD REQUEST END - ERROR ===");
+            logger.error("Exception details:", e);
+            response.put("message", "An error occurred while processing your request. Please try again.");
+            response.put("error_details", e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<Map<String, String>> resetPassword(@RequestBody Map<String, String> request) {
+        logger.info("=== EVALUATOR RESET PASSWORD REQUEST START ===");
+        logger.info("Raw request body: {}", request);
+        
+        String token = request.get("token");
+        String email = request.get("email");
+        String newPassword = request.get("password");
+        String newPasswordFromField = request.get("newPassword");
+        
+        if (newPassword == null && newPasswordFromField != null) {
+            newPassword = newPasswordFromField;
+        }
+        
+        Map<String, String> response = new HashMap<>();
+
+        logger.info("Extracted - token: '{}', email: '{}', password length: {}", 
+                   token, email, newPassword != null ? newPassword.length() : "null");
+
+        // Handle token-based reset (from email link)
+        if (token != null && !token.trim().isEmpty()) {
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                logger.warn("Token-based reset: password is missing");
+                response.put("message", "Password is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            try {
+                logger.info("Calling evaluatorService.resetPassword with token");
+                boolean passwordReset = evaluatorService.resetPassword(token, newPassword);
+                logger.info("Service returned passwordReset: {}", passwordReset);
+                
+                if (passwordReset) {
+                    response.put("message", "Password has been reset successfully");
+                    logger.info("=== EVALUATOR RESET PASSWORD REQUEST END - SUCCESS ===");
+                    return ResponseEntity.ok(response);
+                } else {
+                    response.put("message", "Invalid or expired reset token");
+                    logger.info("=== EVALUATOR RESET PASSWORD REQUEST END - INVALID TOKEN ===");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            } catch (Exception e) {
+                logger.error("=== EVALUATOR RESET PASSWORD REQUEST END - ERROR ===");
+                logger.error("Exception details:", e);
+                response.put("message", "An error occurred while resetting your password. Please try again.");
+                return ResponseEntity.status(500).body(response);
+            }
+        }
+        
+        // Handle direct email-based reset (without token)
+        else if (email != null && !email.trim().isEmpty()) {
+            if (newPassword == null || newPassword.trim().isEmpty()) {
+                logger.warn("Email-based reset: password is missing");
+                response.put("message", "Password is required");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            try {
+                logger.info("Calling evaluatorService.resetPasswordDirectly with email");
+                boolean passwordReset = evaluatorService.resetPasswordDirectly(email, newPassword);
+                logger.info("Service returned passwordReset: {}", passwordReset);
+                
+                if (passwordReset) {
+                    response.put("message", "Password has been reset successfully");
+                    logger.info("=== EVALUATOR RESET PASSWORD REQUEST END - SUCCESS ===");
+                    return ResponseEntity.ok(response);
+                } else {
+                    response.put("message", "Email not found or unable to reset password");
+                    logger.info("=== EVALUATOR RESET PASSWORD REQUEST END - EMAIL NOT FOUND ===");
+                    return ResponseEntity.badRequest().body(response);
+                }
+            } catch (Exception e) {
+                logger.error("=== EVALUATOR RESET PASSWORD REQUEST END - ERROR ===");
+                logger.error("Exception details:", e);
+                response.put("message", "An error occurred while resetting your password. Please try again.");
+                return ResponseEntity.status(500).body(response);
+            }
+        }
+        
+        // Neither token nor email provided
+        else {
+            logger.warn("Validation failed - neither token nor email provided");
+            response.put("message", "Either token or email is required");
+            return ResponseEntity.badRequest().body(response);
+        }
+    }
+
+    @GetMapping("/validate-reset-token/{token}")
+    public ResponseEntity<Map<String, Boolean>> validateResetToken(@PathVariable String token) {
+        logger.info("=== EVALUATOR VALIDATE TOKEN REQUEST START ===");
+        logger.info("Token to validate: '{}'", token);
+        
+        Map<String, Boolean> response = new HashMap<>();
+        
+        try {
+            logger.info("Calling evaluatorService.validateResetToken");
+            boolean isValid = evaluatorService.validateResetToken(token);
+            logger.info("Service returned isValid: {}", isValid);
+            
+            response.put("valid", isValid);
+            logger.info("=== EVALUATOR VALIDATE TOKEN REQUEST END - SUCCESS ===");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("=== EVALUATOR VALIDATE TOKEN REQUEST END - ERROR ===");
+            logger.error("Exception details:", e);
+            response.put("valid", false);
+            return ResponseEntity.ok(response);
         }
     }
 }
