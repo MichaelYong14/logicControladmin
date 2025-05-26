@@ -65,4 +65,41 @@ public class DocumentService {
     public void deleteDocument(Long documentId) {
         documentRepository.deleteById(documentId);
     }
+
+    public Document updateDocument(Long documentId, Long applicantId, String documentType, MultipartFile file) {
+        Document existingDocument = documentRepository.findById(documentId)
+                .orElseThrow(() -> new RuntimeException("Document not found with id " + documentId));
+        
+        // Replace the file directly by reusing the same path
+        String filePath = existingDocument.getFilePath();
+        try {
+            // Store the new file overwriting the old one
+            fileStorageService.replaceFile(filePath, file);
+        } catch (Exception e) {
+            // If replacing fails, store as a new file
+            filePath = fileStorageService.storeFile(file);
+        }
+        
+        // Update the document properties
+        existingDocument.setFilePath(filePath);
+        existingDocument.setFileName(file.getOriginalFilename());
+        existingDocument.setUploadDate(new Date());
+        existingDocument.setFileType(file.getContentType());
+        existingDocument.setFileSize(file.getSize());
+        
+        // Update document type if provided
+        if (documentType != null && !documentType.isEmpty()) {
+            existingDocument.setDocumentType(DocumentType.valueOf(documentType));
+        }
+        
+        // We don't need to update applicant as it should remain the same
+        // Just verify if provided
+        if (applicantId != null) {
+            if (!existingDocument.getApplicant().getApplicantId().equals(applicantId)) {
+                throw new RuntimeException("Cannot change document ownership during update");
+            }
+        }
+        
+        return documentRepository.save(existingDocument);
+    }
 }

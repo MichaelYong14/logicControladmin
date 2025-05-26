@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -150,5 +151,29 @@ public class DocumentController {
     public ResponseEntity<Void> deleteDocument(@PathVariable Long id) {
         documentService.deleteDocument(id);
         return ResponseEntity.noContent().build();
+    }
+
+    // Add PUT mapping for updating documents
+    @PutMapping("/{id}")
+    public ResponseEntity<?> updateDocument(
+            @PathVariable Long id,
+            @RequestParam("files") MultipartFile file,
+            @RequestParam(value = "applicantId", required = false) Long applicantId,
+            @RequestParam(value = "documentType", required = false) String documentType) {
+
+        if (file.getSize() > 15 * 1024 * 1024) { // 15MB in bytes
+            return ResponseEntity.badRequest().body("File exceeds the limit of 15MB");
+        }
+
+        Document updatedDocument = documentService.updateDocument(id, applicantId, documentType, file);
+
+        String fileDownloadUri = ServletUriComponentsBuilder.fromCurrentContextPath()
+                .path("/api/documents/")
+                .path(updatedDocument.getDocumentId().toString())
+                .toUriString();
+
+        FileResponse response = FileResponse.fromDocument(updatedDocument, fileDownloadUri);
+
+        return ResponseEntity.ok(response);
     }
 }
