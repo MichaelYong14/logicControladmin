@@ -27,6 +27,39 @@ public class ApplicantController {
         Applicant registeredApplicant = applicantService.registerApplicant(applicant.getEmail(), applicant.getPassword());
         return ResponseEntity.ok(registeredApplicant);
     }
+    
+    @PostMapping("/register-complete")
+    public ResponseEntity<?> registerCompleteApplicant(@RequestBody Applicant applicant) {
+        logger.info("=== REGISTER COMPLETE REQUEST START ===");
+        logger.info("Received complete registration request for email: {}", applicant.getEmail());
+        
+        try {
+            Applicant registeredApplicant = applicantService.registerCompleteApplicant(applicant);
+            
+            if (registeredApplicant == null) {
+                // Email already exists
+                Map<String, String> response = new HashMap<>();
+                response.put("message", "Email already exists");
+                logger.warn("Registration failed - Email already exists: {}", applicant.getEmail());
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // Create response with just the necessary information
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Registration successful!");
+            response.put("applicantId", registeredApplicant.getApplicantId());
+            
+            logger.info("=== REGISTER COMPLETE REQUEST END - SUCCESS ===");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("=== REGISTER COMPLETE REQUEST END - ERROR ===");
+            logger.error("Exception details:", e);
+            
+            Map<String, String> response = new HashMap<>();
+            response.put("message", "Registration failed. Please try again.");
+            return ResponseEntity.status(500).body(response);
+        }
+    }
 
     @PostMapping("/login")
     public ResponseEntity<Map<String, Object>> loginApplicant(@RequestBody Applicant loginRequest) {

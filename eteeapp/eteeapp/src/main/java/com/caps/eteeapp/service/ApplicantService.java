@@ -27,6 +27,33 @@ public class ApplicantService {
         applicant.setPassword(password);
         return applicantRepository.save(applicant);
     }
+    
+    public Applicant registerCompleteApplicant(Applicant applicant) {
+        logger.info("=== SERVICE: registerCompleteApplicant START ===");
+        logger.info("Registering applicant with complete profile: {}", applicant.getEmail());
+        
+        try {
+            // Check if email already exists
+            Optional<Applicant> existingApplicant = applicantRepository.findByEmail(applicant.getEmail());
+            if (existingApplicant.isPresent()) {
+                logger.warn("Email already exists: {}", applicant.getEmail());
+                return null;
+            }
+            
+            // Save the applicant with all profile details
+            Applicant savedApplicant = applicantRepository.save(applicant);
+            logger.info("Successfully registered applicant with ID: {}", savedApplicant.getApplicantId());
+            logger.info("=== SERVICE: registerCompleteApplicant END - SUCCESS ===");
+            
+            return savedApplicant;
+        } catch (Exception e) {
+            logger.error("=== SERVICE: registerCompleteApplicant END - ERROR ===");
+            logger.error("Exception type: {}", e.getClass().getSimpleName());
+            logger.error("Exception message: {}", e.getMessage());
+            logger.error("Stack trace:", e);
+            throw e;
+        }
+    }
 
     public Optional<Applicant> loginApplicant(String email, String password) {
         Optional<Applicant> applicant = applicantRepository.findByEmail(email);
