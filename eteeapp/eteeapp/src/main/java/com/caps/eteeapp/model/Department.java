@@ -1,25 +1,31 @@
-package com.caps.eteeapp.model;
+    package com.caps.eteeapp.model;
 
-import jakarta.persistence.*;
-import lombok.Data;
+    import jakarta.persistence.*;
+    import lombok.Data;
+    import com.fasterxml.jackson.annotation.JsonIgnore;
 
-@Data
+    import java.util.List;
 
-@Entity
-public class Department {
+    @Data
+    @Entity
+    public class Department {
+        @Id
+        @GeneratedValue(strategy = GenerationType.IDENTITY)
+        private Long departmentId;
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long departmentId;
+        private String departmentName;
 
-    private String departmentName;
+        @ManyToOne
+        @JoinColumn(name = "department_head_id")
+        @JsonIgnore
+        private Evaluator departmentHead;
 
-    @OneToOne
-    @JoinColumn(name = "department_head_id")
-    private Evaluator departmentHead;
+        @OneToMany(mappedBy = "department")
+        @JsonIgnore  // This prevents infinite recursion
+        private List<Course> courses;
 
-    @Lob
-    private String contactInfo;
+        @Lob
+        private String contactInfo;
 
-    // Getters and setters...
-}
+        // Getters and setters...
+    }
