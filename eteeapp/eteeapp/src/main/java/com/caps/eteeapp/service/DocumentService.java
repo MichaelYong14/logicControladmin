@@ -46,6 +46,8 @@ public class DocumentService {
         document.setUploadDate(new Date());
         document.setFileType(file.getContentType());
         document.setFileSize(file.getSize());
+        document.setVerified(false); // Default to not verified
+        document.setNotes(null); // Default to no notes
 
         return documentRepository.save(document);
     }
@@ -92,6 +94,9 @@ public class DocumentService {
             existingDocument.setDocumentType(DocumentType.valueOf(documentType));
         }
         
+        // Keep existing verification status and notes unless specifically updated
+        // (These would be updated through separate admin endpoints)
+        
         // We don't need to update applicant as it should remain the same
         // Just verify if provided
         if (applicantId != null) {
@@ -101,5 +106,21 @@ public class DocumentService {
         }
         
         return documentRepository.save(existingDocument);
+    }
+
+    // Add method to update verification status and notes
+    public Document updateDocumentVerification(Long documentId, Boolean verified, String notes) {
+        Document document = documentRepository.findById(documentId)
+                .orElseThrow(() -> new RuntimeException("Document not found with id " + documentId));
+        
+        if (verified != null) {
+            document.setVerified(verified);
+        }
+        
+        if (notes != null) {
+            document.setNotes(notes);
+        }
+        
+        return documentRepository.save(document);
     }
 }

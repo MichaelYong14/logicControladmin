@@ -30,4 +30,10 @@ public class Document {
 
     private Long fileSize;
 
+    @Column(columnDefinition = "boolean default false")
+    private Boolean verified = false;
+
+    @Column(length = 1000)
+    private String notes;
+
 }

@@ -176,4 +176,15 @@ public class DocumentController {
 
         return ResponseEntity.ok(response);
     }
+
+    // Add endpoint for updating document verification status and notes
+    @PutMapping("/{id}/verification")
+    public ResponseEntity<Document> updateDocumentVerification(
+            @PathVariable Long id,
+            @RequestParam(value = "verified", required = false) Boolean verified,
+            @RequestParam(value = "notes", required = false) String notes) {
+
+        Document updatedDocument = documentService.updateDocumentVerification(id, verified, notes);
+        return ResponseEntity.ok(updatedDocument);
+    }
 }
