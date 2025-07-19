@@ -2,6 +2,8 @@ package com.caps.eteeapp.controller;
 
 import com.caps.eteeapp.model.Applicant;
 import com.caps.eteeapp.service.ApplicantService;
+import com.caps.eteeapp.service.CurriculumService;
+import com.caps.eteeapp.model.Curriculum;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +23,9 @@ public class ApplicantController {
 
     @Autowired
     private ApplicantService applicantService;
+
+    @Autowired
+    private CurriculumService curriculumService;
 
     @PostMapping("/register")
     public ResponseEntity<Applicant> registerApplicant(@RequestBody Applicant applicant) {
@@ -200,5 +205,37 @@ public class ApplicantController {
     public ResponseEntity<Map<String, String>> resetPasswordDirect(@RequestBody Map<String, String> request) {
         // Just delegate to the main reset-password endpoint
         return resetPassword(request);
+    }
+
+    @PostMapping("/{applicantId}/create-curriculum-record")
+    public ResponseEntity<Map<String, String>> createCurriculumRecord(
+            @PathVariable Long applicantId, 
+            @RequestParam Long curriculumId) {
+        
+        Map<String, String> response = new HashMap<>();
+        
+        try {
+            Optional<Applicant> applicantOpt = applicantService.findApplicantById(applicantId);
+            if (!applicantOpt.isPresent()) {
+                response.put("message", "Applicant not found");
+                return ResponseEntity.notFound().build();
+            }
+            
+            Optional<Curriculum> curriculumOpt = curriculumService.getCurriculumById(curriculumId);
+            if (!curriculumOpt.isPresent()) {
+                response.put("message", "Curriculum not found");
+                return ResponseEntity.notFound().build();
+            }
+            
+            applicantService.createApplicantRecordFromCurriculum(applicantOpt.get(), curriculumOpt.get());
+            
+            response.put("message", "Curriculum records created successfully");
+            return ResponseEntity.ok(response);
+            
+        } catch (Exception e) {
+            logger.error("Error creating curriculum record: ", e);
+            response.put("message", "Failed to create curriculum records: " + e.getMessage());
+            return ResponseEntity.status(500).body(response);
+        }
     }
 }
