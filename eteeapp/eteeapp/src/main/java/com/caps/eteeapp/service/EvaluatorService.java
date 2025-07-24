@@ -29,8 +29,38 @@ public class EvaluatorService {
     }
 
     public Evaluator registerEvaluator(Evaluator evaluator) {
-        // Save the evaluator without modifying the isAdmin field
-        return evaluatorRepository.save(evaluator);
+        logger.info("=== EVALUATOR SERVICE: registerEvaluator START ===");
+        logger.info("Registering evaluator - Name: {}, Email: {}, Department: {}", 
+                   evaluator.getName(), 
+                   evaluator.getEmail(), 
+                   evaluator.getDepartment() != null ? evaluator.getDepartment().getDepartmentName() : "null");
+        
+        try {
+            // Validate that department is properly set
+            if (evaluator.getDepartment() == null) {
+                logger.error("Department is null - cannot register evaluator");
+                throw new RuntimeException("Department is required for evaluator registration");
+            }
+            
+            logger.info("Department details - ID: {}, Name: {}", 
+                       evaluator.getDepartment().getDepartmentId(),
+                       evaluator.getDepartment().getDepartmentName());
+            
+            // Save the evaluator without modifying the isAdmin field
+            Evaluator savedEvaluator = evaluatorRepository.save(evaluator);
+            
+            logger.info("Successfully registered evaluator - ID: {}, Email: {}", 
+                       savedEvaluator.getEvaluatorId(), savedEvaluator.getEmail());
+            logger.info("=== EVALUATOR SERVICE: registerEvaluator END - SUCCESS ===");
+            
+            return savedEvaluator;
+        } catch (Exception e) {
+            logger.error("=== EVALUATOR SERVICE: registerEvaluator END - ERROR ===");
+            logger.error("Exception type: {}", e.getClass().getSimpleName());
+            logger.error("Exception message: {}", e.getMessage());
+            logger.error("Stack trace:", e);
+            throw new RuntimeException("Failed to register evaluator: " + e.getMessage(), e);
+        }
     }
 
     public Optional<Evaluator> loginEvaluator(String email, String password) {

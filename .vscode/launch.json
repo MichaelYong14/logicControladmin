@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-EteeappApplication<eteeapp>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.caps.eteeapp.EteeappApplication",
+            "projectName": "eteeapp",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

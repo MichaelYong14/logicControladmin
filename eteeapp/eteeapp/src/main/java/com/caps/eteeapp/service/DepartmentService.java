@@ -9,8 +9,13 @@ import org.springframework.stereotype.Service;
 import com.caps.eteeapp.model.Department;
 import com.caps.eteeapp.repository.DepartmentRepository;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class DepartmentService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DepartmentService.class);
 
     @Autowired
     private DepartmentRepository departmentRepository;
@@ -28,7 +33,34 @@ public class DepartmentService {
     }
 
     public Optional<Department> findByDepartmentName(String departmentName) {
-        return departmentRepository.findByDepartmentName(departmentName);
+        logger.info("=== DEPARTMENT SERVICE: findByDepartmentName START ===");
+        logger.info("Looking for department with name: '{}'", departmentName);
+        
+        try {
+            Optional<Department> department = departmentRepository.findByDepartmentName(departmentName);
+            
+            if (department.isPresent()) {
+                logger.info("Department found - ID: {}, Name: {}", 
+                           department.get().getDepartmentId(), 
+                           department.get().getDepartmentName());
+            } else {
+                logger.warn("No department found with name: '{}'", departmentName);
+                
+                // Log all available departments for debugging
+                List<Department> allDepartments = departmentRepository.findAll();
+                logger.info("Available departments:");
+                for (Department dept : allDepartments) {
+                    logger.info("  - ID: {}, Name: '{}'", dept.getDepartmentId(), dept.getDepartmentName());
+                }
+            }
+            
+            logger.info("=== DEPARTMENT SERVICE: findByDepartmentName END ===");
+            return department;
+        } catch (Exception e) {
+            logger.error("=== DEPARTMENT SERVICE: findByDepartmentName END - ERROR ===");
+            logger.error("Exception details:", e);
+            throw e;
+        }
     }
 
     public Department updateDepartment(Long id, Department updatedDepartment) {

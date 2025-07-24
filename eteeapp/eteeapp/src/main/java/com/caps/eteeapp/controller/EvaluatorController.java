@@ -95,35 +95,44 @@ public class EvaluatorController {
     // Add POST endpoint for registration
     @PostMapping("/register")
     public ResponseEntity<?> registerEvaluator(@RequestBody RegistrationRequest registrationRequest) {
+        logger.info("=== EVALUATOR REGISTRATION REQUEST START ===");
+        logger.info("Registration request received: {}", registrationRequest.toString());
+        
         try {
-            System.out.println("Registration request received: " + registrationRequest.toString()); // Debug log
-            
             // Validate required fields
             if (registrationRequest.getName() == null || registrationRequest.getName().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Name is required");
+                logger.warn("Validation failed - name is required");
+                return ResponseEntity.badRequest().body(createErrorResponse("Name is required"));
             }
             if (registrationRequest.getEmail() == null || registrationRequest.getEmail().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Email is required");
+                logger.warn("Validation failed - email is required");
+                return ResponseEntity.badRequest().body(createErrorResponse("Email is required"));
             }
             if (registrationRequest.getPassword() == null || registrationRequest.getPassword().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Password is required");
+                logger.warn("Validation failed - password is required");
+                return ResponseEntity.badRequest().body(createErrorResponse("Password is required"));
             }
             if (registrationRequest.getDepartment() == null || registrationRequest.getDepartment().trim().isEmpty()) {
-                return ResponseEntity.badRequest().body("Department is required");
+                logger.warn("Validation failed - department is required");
+                return ResponseEntity.badRequest().body(createErrorResponse("Department is required"));
             }
             
             // Check if email already exists
             Optional<Evaluator> existingEvaluator = evaluatorService.findByEmail(registrationRequest.getEmail());
             if (existingEvaluator.isPresent()) {
-                return ResponseEntity.badRequest().body("Email already registered");
+                logger.warn("Registration failed - email already exists: {}", registrationRequest.getEmail());
+                return ResponseEntity.badRequest().body(createErrorResponse("Email already registered"));
             }
             
             // Find department by name
+            logger.info("Looking up department: {}", registrationRequest.getDepartment());
             Optional<Department> department = departmentService.findByDepartmentName(registrationRequest.getDepartment());
             if (!department.isPresent()) {
-                System.out.println("Department not found: " + registrationRequest.getDepartment()); // Debug log
-                return ResponseEntity.badRequest().body("Invalid department selected: " + registrationRequest.getDepartment());
+                logger.warn("Department not found: {}", registrationRequest.getDepartment());
+                return ResponseEntity.badRequest().body(createErrorResponse("Invalid department selected: " + registrationRequest.getDepartment()));
             }
+            
+            logger.info("Department found: {} (ID: {})", department.get().getDepartmentName(), department.get().getDepartmentId());
             
             // Create new evaluator from registration request
             Evaluator evaluator = new Evaluator();
@@ -133,17 +142,35 @@ public class EvaluatorController {
             evaluator.setContactNumber(registrationRequest.getContactNumber());
             evaluator.setRole(registrationRequest.getRole());
             evaluator.setDepartment(department.get());
+            evaluator.setAdmin(false); // Set default admin status
             
-            System.out.println("Saving evaluator: " + evaluator.toString()); // Debug log
+            logger.info("Saving evaluator with department ID: {}", department.get().getDepartmentId());
             
             // Register the new evaluator
             Evaluator registeredEvaluator = evaluatorService.registerEvaluator(evaluator);
-            return ResponseEntity.ok(registeredEvaluator);
+            
+            // Create success response
+            Map<String, Object> response = new HashMap<>();
+            response.put("message", "Registration successful!");
+            response.put("evaluatorId", registeredEvaluator.getEvaluatorId());
+            
+            logger.info("=== EVALUATOR REGISTRATION REQUEST END - SUCCESS ===");
+            return ResponseEntity.ok(response);
+            
         } catch (Exception e) {
-            System.err.println("Registration error: " + e.getMessage()); // Debug log
-            e.printStackTrace();
-            return ResponseEntity.badRequest().body("Registration failed: " + e.getMessage());
+            logger.error("=== EVALUATOR REGISTRATION REQUEST END - ERROR ===");
+            logger.error("Exception type: {}", e.getClass().getSimpleName());
+            logger.error("Exception message: {}", e.getMessage());
+            logger.error("Stack trace:", e);
+            return ResponseEntity.status(500).body(createErrorResponse("Registration failed: " + e.getMessage()));
         }
+    }
+    
+    // Helper method to create error response
+    private Map<String, String> createErrorResponse(String message) {
+        Map<String, String> response = new HashMap<>();
+        response.put("message", message);
+        return response;
     }
     
     // Add POST endpoint for login
