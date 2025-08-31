@@ -2,6 +2,8 @@ package com.caps.eteeapp.model;
 
 import jakarta.persistence.*;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 @Data
@@ -19,6 +21,7 @@ public class Curriculum {
     private Integer yearStarted;
 
     @OneToMany(mappedBy = "curriculum", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Semester> semesters;
 
     @Column(length = 1000)

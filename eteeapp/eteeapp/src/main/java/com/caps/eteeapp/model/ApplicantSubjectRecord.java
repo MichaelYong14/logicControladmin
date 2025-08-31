@@ -2,6 +2,8 @@ package com.caps.eteeapp.model;
 
 import jakarta.persistence.*;
 import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Data;
 
 @Data
@@ -14,6 +16,7 @@ public class ApplicantSubjectRecord {
 
     @ManyToOne
     @JoinColumn(name = "applicant_id", nullable = false)
+    @JsonBackReference
     private Applicant applicant;
 
     @ManyToOne

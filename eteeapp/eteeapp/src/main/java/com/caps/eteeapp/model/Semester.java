@@ -2,6 +2,9 @@ package com.caps.eteeapp.model;
 
 import jakarta.persistence.*;
 import java.util.List;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import lombok.Data;
 
 @Data
@@ -20,9 +23,11 @@ public class Semester {
 
     @ManyToOne
     @JoinColumn(name = "curriculum_id", nullable = false)
+    @JsonBackReference
     private Curriculum curriculum;
 
     @OneToMany(mappedBy = "semester", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JsonManagedReference
     private List<Subject> subjects;
 
     @Column(length = 500)

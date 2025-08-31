@@ -1,6 +1,8 @@
 package com.caps.eteeapp.model;
 
 import jakarta.persistence.*;
+
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import lombok.Data;
 
 @Data
@@ -28,6 +30,7 @@ public class Subject {
 
     @ManyToOne
     @JoinColumn(name = "semester_id", nullable = false)
+    @JsonBackReference
     private Semester semester;
 
     @Column(length = 1000)
