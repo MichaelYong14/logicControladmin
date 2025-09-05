@@ -11,6 +11,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @CrossOrigin(origins = "*")
@@ -117,6 +118,23 @@ public class ProgramAdminController {
             return ResponseEntity.ok(updatedApplication);
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/applications/{id}/assign-course")
+    public ResponseEntity<String> assignCourse(
+            @PathVariable Long id,
+            @RequestBody Map<String, Object> requestBody) {
+        try {
+            Long applicantId = Long.valueOf(requestBody.get("applicantId").toString());
+            Long courseId = Long.valueOf(requestBody.get("courseId").toString());
+            
+            // Logic to assign course to applicant
+            applicationService.assignCourseToApplicant(applicantId, courseId);
+            
+            return ResponseEntity.ok("Course assigned successfully");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Failed to assign course: " + e.getMessage());
         }
     }
 }

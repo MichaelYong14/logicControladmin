@@ -67,6 +67,29 @@ public class EvaluationController {
         }
     }
 
+    @PostMapping("/forward-all-preferences/{applicantId}")
+    public ResponseEntity<String> forwardAllPreferencesForEvaluation(
+            @PathVariable Long applicantId,
+            @RequestBody Map<String, Object> requestBody) {
+        try {
+            Long applicationId = Long.valueOf(requestBody.get("applicationId").toString());
+            @SuppressWarnings("unchecked")
+            List<Integer> courseIds = (List<Integer>) requestBody.get("courseIds");
+            
+            List<Long> courseIdsList = courseIds.stream()
+                    .map(Integer::longValue)
+                    .toList();
+            
+            int forwardedCount = evaluationService.forwardAllCoursesForEvaluation(applicantId, courseIdsList, applicationId);
+            
+            return ResponseEntity.ok("Successfully forwarded " + forwardedCount + " course preferences for evaluation");
+        } catch (Exception e) {
+            System.err.println("Error forwarding all preferences for applicant " + applicantId + ": " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("Failed to forward preferences: " + e.getMessage());
+        }
+    }
+
     @PostMapping("/forward-to-department/{applicantId}")
     public ResponseEntity<List<Evaluation>> forwardToDepartment(@PathVariable Long applicantId) {
         List<Evaluation> evaluations = evaluationService.forwardApplicant(applicantId);

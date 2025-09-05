@@ -109,6 +109,98 @@ public class EvaluationService {
         return evaluationRepository.save(existingEvaluation);
     }
 
+    // New method to forward all courses for evaluation
+    public int forwardAllCoursesForEvaluation(Long applicantId, List<Long> courseIds, Long applicationId) {
+        try {
+            // Find the applicant
+            Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
+            if (!applicantOpt.isPresent()) {
+                throw new RuntimeException("Applicant not found with ID: " + applicantId);
+            }
+
+            // Find the application (optional, for reference)
+            Optional<ApplicantApplication> applicationOpt = applicationRepository.findById(applicationId);
+            ApplicantApplication application = applicationOpt.orElse(null);
+
+            Applicant applicant = applicantOpt.get();
+            int forwardedCount = 0;
+
+            // Process each course ID
+            for (Long courseId : courseIds) {
+                try {
+                    // Find the course
+                    Optional<Course> courseOpt = courseRepository.findById(courseId);
+                    if (!courseOpt.isPresent()) {
+                        System.err.println("Course not found with ID: " + courseId + ", skipping...");
+                        continue;
+                    }
+
+                    Course course = courseOpt.get();
+                    Department department = course.getDepartment();
+
+                    if (department == null) {
+                        System.err.println("Course " + courseId + " does not belong to any department, skipping...");
+                        continue;
+                    }
+
+                    // Find evaluators for the course's department
+                    List<Evaluator> evaluators = evaluatorRepository.findByDepartment_DepartmentId(
+                        department.getDepartmentId());
+
+                    // If no specific evaluators found, try to use department head
+                    if (evaluators.isEmpty() && department.getDepartmentHead() != null) {
+                        evaluators = List.of(department.getDepartmentHead());
+                    }
+
+                    if (evaluators.isEmpty()) {
+                        System.err.println("No evaluators found for department: " + 
+                            department.getDepartmentName() + ", skipping course " + courseId);
+                        continue;
+                    }
+
+                    // Create evaluations for each evaluator in the department
+                    boolean courseForwarded = false;
+                    for (Evaluator evaluator : evaluators) {
+                        // Check if evaluation already exists
+                        Optional<Evaluation> existingEvaluation = findExistingEvaluation(
+                            applicantId, courseId, evaluator.getEvaluatorId());
+
+                        if (!existingEvaluation.isPresent()) {
+                            Evaluation evaluation = new Evaluation();
+                            evaluation.setApplicant(applicant);
+                            evaluation.setCourse(course);
+                            evaluation.setEvaluator(evaluator);
+                            evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
+                            
+                            // Set application reference if available
+                            if (application != null) {
+                                evaluation.setApplication(application);
+                            }
+                            
+                            evaluationRepository.save(evaluation);
+                            courseForwarded = true;
+                        }
+                    }
+
+                    if (courseForwarded) {
+                        forwardedCount++;
+                    }
+
+                } catch (Exception e) {
+                    System.err.println("Error forwarding course " + courseId + " for applicant " + applicantId + ": " + e.getMessage());
+                    // Continue with other courses even if one fails
+                }
+            }
+
+            return forwardedCount;
+
+        } catch (Exception e) {
+            System.err.println("Error in forwardAllCoursesForEvaluation: " + e.getMessage());
+            e.printStackTrace();
+            throw new RuntimeException("Failed to forward courses for evaluation: " + e.getMessage(), e);
+        }
+    }
+
     // New method to support forwarding to specific course
     public List<Evaluation> forwardApplicantToCourse(Long applicantId, Long courseId) {
         try {
