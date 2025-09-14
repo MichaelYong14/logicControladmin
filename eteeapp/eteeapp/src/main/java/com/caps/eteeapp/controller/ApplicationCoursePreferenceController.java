@@ -1,5 +1,6 @@
 package com.caps.eteeapp.controller;
 
+import com.caps.eteeapp.dto.CoursePreferenceWithEvaluationDTO;
 import com.caps.eteeapp.model.ApplicationCoursePreference;
 import com.caps.eteeapp.service.ApplicationCoursePreferenceService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,12 @@ public class ApplicationCoursePreferenceController {
     public ResponseEntity<List<ApplicationCoursePreference>> getPreferencesByApplicantId(@PathVariable Long applicantId) {
         List<ApplicationCoursePreference> preferences = preferenceService.getPreferencesByApplicantId(applicantId);
         return ResponseEntity.ok(preferences);
+    }
+
+    @GetMapping("/applicant/{applicantId}/with-evaluation")
+    public ResponseEntity<List<CoursePreferenceWithEvaluationDTO>> getCoursePreferencesWithEvaluation(@PathVariable Long applicantId) {
+        List<CoursePreferenceWithEvaluationDTO> dtos = preferenceService.getCoursePreferencesWithEvaluation(applicantId);
+        return ResponseEntity.ok(dtos);
     }
 
     @DeleteMapping("/{id}")

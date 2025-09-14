@@ -3,6 +3,10 @@ package com.caps.eteeapp.service;
 import com.caps.eteeapp.model.ApplicationCoursePreference;
 import com.caps.eteeapp.repository.ApplicationCoursePreferenceRepository;
 import com.caps.eteeapp.model.Applicant;
+import com.caps.eteeapp.dto.CoursePreferenceWithEvaluationDTO;
+import com.caps.eteeapp.model.Evaluation;
+import com.caps.eteeapp.model.Evaluation.EvaluationStatus;
+import com.caps.eteeapp.repository.EvaluationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.slf4j.Logger;
@@ -21,6 +25,9 @@ public class ApplicationCoursePreferenceService {
 
     @Autowired
     private ApplicantService applicantService;
+
+    @Autowired
+    private EvaluationRepository evaluationRepository;
 
     public ApplicationCoursePreference createPreference(ApplicationCoursePreference preference) {
         return preferenceRepository.save(preference);
@@ -64,5 +71,30 @@ public class ApplicationCoursePreferenceService {
 
     public List<ApplicationCoursePreference> getPreferencesByApplicantId(Long applicantId) {
         return preferenceRepository.findByApplicant_ApplicantId(applicantId);
+    }
+
+    public List<CoursePreferenceWithEvaluationDTO> getCoursePreferencesWithEvaluation(Long applicantId) {
+        List<ApplicationCoursePreference> preferences = preferenceRepository.findByApplicant_ApplicantId(applicantId);
+        List<CoursePreferenceWithEvaluationDTO> dtos = new java.util.ArrayList<>();
+
+        for (ApplicationCoursePreference pref : preferences) {
+            // Find the evaluation for this applicant and course
+            Evaluation eval = evaluationRepository
+                .findFirstByApplicant_ApplicantIdAndCourse_CourseId(
+                    pref.getApplicant().getApplicantId(),
+                    pref.getCourse().getCourseId()
+                ).orElse(null);
+
+            EvaluationStatus evalStatus = eval != null ? eval.getEvaluationStatus() : EvaluationStatus.PENDING;
+
+            dtos.add(new CoursePreferenceWithEvaluationDTO(
+                pref.getPreferenceId(),
+                pref.getCourse(),
+                pref.getPriorityOrder(),
+                pref.getStatus(),
+                evalStatus
+            ));
+        }
+        return dtos;
     }
 }

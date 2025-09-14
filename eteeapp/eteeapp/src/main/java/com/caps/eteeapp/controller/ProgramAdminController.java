@@ -3,9 +3,11 @@ package com.caps.eteeapp.controller;
 import com.caps.eteeapp.model.ApplicantApplication;
 import com.caps.eteeapp.model.ApplicationCoursePreference;
 import com.caps.eteeapp.model.Document;
+import com.caps.eteeapp.model.ProgramAdmin;
 import com.caps.eteeapp.service.ApplicantApplicationService;
 import com.caps.eteeapp.service.ApplicationCoursePreferenceService;
 import com.caps.eteeapp.service.DocumentService;
+import com.caps.eteeapp.service.ProgramAdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -27,6 +29,9 @@ public class ProgramAdminController {
     
     @Autowired
     private DocumentService documentService;
+    
+    @Autowired
+    private ProgramAdminService programAdminService;
 
     @GetMapping("/applications")
     public ResponseEntity<List<ApplicantApplication>> getAllApplications() {
@@ -137,4 +142,11 @@ public class ProgramAdminController {
             return ResponseEntity.badRequest().body("Failed to assign course: " + e.getMessage());
         }
     }
+
+    @PostMapping
+    public ResponseEntity<ProgramAdmin> createProgramAdmin(@RequestBody ProgramAdmin admin) {
+        ProgramAdmin saved = programAdminService.createProgramAdmin(admin);
+        return ResponseEntity.ok(saved);
+    }
 }
+

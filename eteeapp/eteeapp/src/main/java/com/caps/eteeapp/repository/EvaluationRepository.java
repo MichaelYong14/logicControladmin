@@ -38,4 +38,7 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, Long> {
     
     // Count pending evaluations for a specific applicant
     Long countByApplicant_ApplicantIdAndEvaluationStatus(Long applicantId, Evaluation.EvaluationStatus status);
+    
+    // Find the first evaluation by applicant and course (for DTO mapping)
+    Optional<Evaluation> findFirstByApplicant_ApplicantIdAndCourse_CourseId(Long applicantId, Long courseId);
 }
