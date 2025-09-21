@@ -29,4 +29,8 @@ public class Curriculum {
 
     @Column(nullable = false)
     private Boolean isActive = true;
+
+    @ManyToOne
+    @JoinColumn(name = "department_id")
+    private Department department;
 }
