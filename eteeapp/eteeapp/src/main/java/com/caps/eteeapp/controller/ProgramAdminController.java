@@ -1,5 +1,22 @@
 package com.caps.eteeapp.controller;
 
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
 import com.caps.eteeapp.model.ApplicantApplication;
 import com.caps.eteeapp.model.ApplicationCoursePreference;
 import com.caps.eteeapp.model.Document;
@@ -8,13 +25,6 @@ import com.caps.eteeapp.service.ApplicantApplicationService;
 import com.caps.eteeapp.service.ApplicationCoursePreferenceService;
 import com.caps.eteeapp.service.DocumentService;
 import com.caps.eteeapp.service.ProgramAdminService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -147,6 +157,54 @@ public class ProgramAdminController {
     public ResponseEntity<ProgramAdmin> createProgramAdmin(@RequestBody ProgramAdmin admin) {
         ProgramAdmin saved = programAdminService.createProgramAdmin(admin);
         return ResponseEntity.ok(saved);
+    }
+
+    @PostMapping("/login")
+    public ResponseEntity<?> loginProgramAdmin(@RequestBody LoginRequest loginRequest) {
+        try {
+            Optional<ProgramAdmin> programAdminOpt = programAdminService.loginProgramAdmin(
+                loginRequest.getEmail(), 
+                loginRequest.getPassword()
+            );
+            
+            if (programAdminOpt.isPresent()) {
+                ProgramAdmin programAdmin = programAdminOpt.get();
+                Map<String, Object> response = new HashMap<>();
+                response.put("adminId", programAdmin.getAdminId());
+                response.put("name", programAdmin.getName());
+                response.put("email", programAdmin.getEmail());
+                response.put("role", programAdmin.getRole());
+                response.put("contactNumber", programAdmin.getContactNumber());
+                
+                return ResponseEntity.ok(response);
+            } else {
+                return ResponseEntity.status(401).body("Invalid email or password");
+            }
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Login failed: " + e.getMessage());
+        }
+    }
+
+    // Nested class for login request
+    private static class LoginRequest {
+        private String email;
+        private String password;
+        
+        public String getEmail() {
+            return email;
+        }
+        
+        public void setEmail(String email) {
+            this.email = email;
+        }
+        
+        public String getPassword() {
+            return password;
+        }
+        
+        public void setPassword(String password) {
+            this.password = password;
+        }
     }
 }
 

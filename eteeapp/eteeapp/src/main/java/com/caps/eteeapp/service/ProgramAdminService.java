@@ -40,4 +40,16 @@ public class ProgramAdminService {
     public void deleteProgramAdmin(Long id) {
         programAdminRepository.deleteById(id);
     }
+
+    public Optional<ProgramAdmin> loginProgramAdmin(String email, String password) {
+        Optional<ProgramAdmin> programAdmin = programAdminRepository.findByEmail(email);
+        if (programAdmin.isPresent() && password.equals(programAdmin.get().getPassword())) {
+            return programAdmin;
+        }
+        return Optional.empty();
+    }
+
+    public Optional<ProgramAdmin> findByEmail(String email) {
+        return programAdminRepository.findByEmail(email);
+    }
 }
