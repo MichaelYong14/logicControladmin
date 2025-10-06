@@ -1,15 +1,5 @@
 package com.caps.eteeapp.service;
 
-<<<<<<< HEAD
-=======
-import com.caps.eteeapp.model.Curriculum;
-import com.caps.eteeapp.model.Department;
-import com.caps.eteeapp.repository.CurriculumRepository;
-import com.caps.eteeapp.repository.DepartmentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
->>>>>>> c5b972e67f6d6f92427bad5b27792eb45dea4749
 import java.util.List;
 import java.util.Optional;
 
@@ -17,7 +7,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.caps.eteeapp.model.Curriculum;
+import com.caps.eteeapp.model.Department;
 import com.caps.eteeapp.repository.CurriculumRepository;
+import com.caps.eteeapp.repository.DepartmentRepository;
 
 @Service
 public class CurriculumService {
@@ -56,15 +48,11 @@ public class CurriculumService {
                     curriculum.setYearStarted(updatedCurriculum.getYearStarted());
                     curriculum.setDescription(updatedCurriculum.getDescription());
                     curriculum.setIsActive(updatedCurriculum.getIsActive());
-<<<<<<< HEAD
-                    curriculum.setDepartment(updatedCurriculum.getDepartment());
-=======
                     if (updatedCurriculum.getDepartment() != null && updatedCurriculum.getDepartment().getDepartmentId() != null) {
                         Department dept = departmentRepository.findById(updatedCurriculum.getDepartment().getDepartmentId())
                             .orElseThrow(() -> new RuntimeException("Department not found"));
                         curriculum.setDepartment(dept);
                     }
->>>>>>> c5b972e67f6d6f92427bad5b27792eb45dea4749
                     return curriculumRepository.save(curriculum);
                 })
                 .orElseThrow(() -> new RuntimeException("Curriculum not found with id " + id));
