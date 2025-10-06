@@ -40,7 +40,11 @@ public class Curriculum {
     @Column(nullable = false)
     private Boolean isActive = true;
 
+<<<<<<< HEAD
     @ManyToOne(fetch = FetchType.EAGER)
+=======
+    @ManyToOne
+>>>>>>> c5b972e67f6d6f92427bad5b27792eb45dea4749
     @JoinColumn(name = "department_id")
     private Department department;
 }
