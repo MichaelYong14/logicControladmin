@@ -1,12 +1,13 @@
 package com.caps.eteeapp.service;
 
-import com.caps.eteeapp.model.Curriculum;
-import com.caps.eteeapp.repository.CurriculumRepository;
+import java.util.List;
+import java.util.Optional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Optional;
+import com.caps.eteeapp.model.Curriculum;
+import com.caps.eteeapp.repository.CurriculumRepository;
 
 @Service
 public class CurriculumService {
@@ -37,6 +38,7 @@ public class CurriculumService {
                     curriculum.setYearStarted(updatedCurriculum.getYearStarted());
                     curriculum.setDescription(updatedCurriculum.getDescription());
                     curriculum.setIsActive(updatedCurriculum.getIsActive());
+                    curriculum.setDepartment(updatedCurriculum.getDepartment());
                     return curriculumRepository.save(curriculum);
                 })
                 .orElseThrow(() -> new RuntimeException("Curriculum not found with id " + id));

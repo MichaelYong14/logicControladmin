@@ -3,14 +3,13 @@ package com.caps.eteeapp.service;
 import java.util.List;
 import java.util.Optional;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.caps.eteeapp.model.Department;
 import com.caps.eteeapp.repository.DepartmentRepository;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Service
 public class DepartmentService {
@@ -26,6 +25,10 @@ public class DepartmentService {
 
     public List<Department> getAllDepartments() {
         return departmentRepository.findAll();
+    }
+
+    public List<Department> getActiveDepartments() {
+        return departmentRepository.findByIsActiveTrue();
     }
 
     public Optional<Department> getDepartmentById(Long id) {
@@ -66,13 +69,17 @@ public class DepartmentService {
     public Department updateDepartment(Long id, Department updatedDepartment) {
         return departmentRepository.findById(id).map(department -> {
             department.setDepartmentName(updatedDepartment.getDepartmentName());
-            department.setDepartmentHead(updatedDepartment.getDepartmentHead());
-            department.setContactInfo(updatedDepartment.getContactInfo());
+            department.setDescription(updatedDepartment.getDescription());
+            department.setIsActive(updatedDepartment.getIsActive());
             return departmentRepository.save(department);
         }).orElseThrow(() -> new RuntimeException("Department not found with id " + id));
     }
 
     public void deleteDepartment(Long id) {
         departmentRepository.deleteById(id);
+    }
+
+    public List<Department> searchByDepartmentName(String departmentName) {
+        return departmentRepository.findByDepartmentNameContainingIgnoreCase(departmentName);
     }
 }

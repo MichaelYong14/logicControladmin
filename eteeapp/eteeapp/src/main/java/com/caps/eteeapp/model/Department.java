@@ -1,31 +1,41 @@
-    package com.caps.eteeapp.model;
+package com.caps.eteeapp.model;
 
-    import jakarta.persistence.*;
-    import lombok.Data;
-    import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
 
-    import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-    @Data
-    @Entity
-    public class Department {
-        @Id
-        @GeneratedValue(strategy = GenerationType.IDENTITY)
-        private Long departmentId;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.OneToMany;
+import lombok.Data;
 
-        private String departmentName;
+@Data
+@Entity
+public class Department {
 
-        @ManyToOne
-        @JoinColumn(name = "department_head_id")
-        @JsonIgnore
-        private Evaluator departmentHead;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long departmentId;
 
-        @OneToMany(mappedBy = "department")
-        @JsonIgnore  // This prevents infinite recursion
-        private List<Course> courses;
+    @Column(nullable = false)
+    private String departmentName;
 
-        @Lob
-        private String contactInfo;
+    @Column(length = 1000)
+    private String description;
 
-        // Getters and setters...
-    }
+    @Column(nullable = false)
+    private Boolean isActive = true;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Course> courses;
+
+    @JsonIgnore
+    @OneToMany(mappedBy = "department", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List<Curriculum> curriculums;
+}

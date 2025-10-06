@@ -1,27 +1,27 @@
 package com.caps.eteeapp.service;
 
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
 import com.caps.eteeapp.model.Applicant;
+import com.caps.eteeapp.model.ApplicantApplication;
 import com.caps.eteeapp.model.ApplicationCoursePreference;
 import com.caps.eteeapp.model.Course;
 import com.caps.eteeapp.model.Department;
 import com.caps.eteeapp.model.Evaluation;
 import com.caps.eteeapp.model.Evaluator;
-import com.caps.eteeapp.model.ApplicantApplication;
+import com.caps.eteeapp.repository.ApplicantApplicationRepository;
 import com.caps.eteeapp.repository.ApplicantRepository;
 import com.caps.eteeapp.repository.ApplicationCoursePreferenceRepository;
 import com.caps.eteeapp.repository.CourseRepository;
 import com.caps.eteeapp.repository.DepartmentRepository;
 import com.caps.eteeapp.repository.EvaluationRepository;
 import com.caps.eteeapp.repository.EvaluatorRepository;
-import com.caps.eteeapp.repository.ApplicantApplicationRepository;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
 
 @Service
 public class EvaluationService {
@@ -147,11 +147,6 @@ public class EvaluationService {
                     List<Evaluator> evaluators = evaluatorRepository.findByDepartment_DepartmentId(
                         department.getDepartmentId());
 
-                    // If no specific evaluators found, try to use department head
-                    if (evaluators.isEmpty() && department.getDepartmentHead() != null) {
-                        evaluators = List.of(department.getDepartmentHead());
-                    }
-
                     if (evaluators.isEmpty()) {
                         System.err.println("No evaluators found for department: " + 
                             department.getDepartmentName() + ", skipping course " + courseId);
@@ -228,11 +223,6 @@ public class EvaluationService {
             List<Evaluator> evaluators = evaluatorRepository.findByDepartment_DepartmentId(
                 department.getDepartmentId());
 
-            // If no specific evaluators found, try to use department head
-            if (evaluators.isEmpty() && department.getDepartmentHead() != null) {
-                evaluators = List.of(department.getDepartmentHead());
-            }
-
             if (evaluators.isEmpty()) {
                 throw new RuntimeException("No evaluators found for department: " + 
                     department.getDepartmentName());
@@ -290,22 +280,27 @@ public class EvaluationService {
                 Course course = preference.getCourse();
                 Department department = course.getDepartment();
                 
-                // If the course has a department with a head evaluator, assign them
-                if (department != null && department.getDepartmentHead() != null) {
-                    // Check if evaluation already exists
-                    Optional<Evaluation> existingEvaluation = findExistingEvaluation(
-                        applicantId, course.getCourseId(), department.getDepartmentHead().getEvaluatorId());
+                // Find evaluators for the course's department
+                if (department != null) {
+                    List<Evaluator> evaluators = evaluatorRepository.findByDepartment_DepartmentId(
+                        department.getDepartmentId());
+                    
+                    for (Evaluator evaluator : evaluators) {
+                        // Check if evaluation already exists
+                        Optional<Evaluation> existingEvaluation = findExistingEvaluation(
+                            applicantId, course.getCourseId(), evaluator.getEvaluatorId());
 
-                    if (!existingEvaluation.isPresent()) {
-                        Evaluation evaluation = new Evaluation();
-                        evaluation.setApplicant(applicant);
-                        evaluation.setCourse(course);
-                        evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
-                        evaluation.setEvaluator(department.getDepartmentHead());
-                        
-                        evaluations.add(evaluationRepository.save(evaluation));
-                    } else {
-                        evaluations.add(existingEvaluation.get());
+                        if (!existingEvaluation.isPresent()) {
+                            Evaluation evaluation = new Evaluation();
+                            evaluation.setApplicant(applicant);
+                            evaluation.setCourse(course);
+                            evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
+                            evaluation.setEvaluator(evaluator);
+                            
+                            evaluations.add(evaluationRepository.save(evaluation));
+                        } else {
+                            evaluations.add(existingEvaluation.get());
+                        }
                     }
                 }
             }
@@ -353,18 +348,20 @@ public class EvaluationService {
                 
                 // Create evaluations for each course in the department
                 List<Evaluation> evaluations = new ArrayList<>();
+                List<Evaluator> evaluators = evaluatorRepository.findByDepartment_DepartmentId(departmentId);
+                
                 for (Course course : departmentCourses) {
-                    // Check if evaluation already exists for department head
-                    if (department.getDepartmentHead() != null) {
+                    for (Evaluator evaluator : evaluators) {
+                        // Check if evaluation already exists
                         Optional<Evaluation> existingEvaluation = findExistingEvaluation(
-                            applicantId, course.getCourseId(), department.getDepartmentHead().getEvaluatorId());
+                            applicantId, course.getCourseId(), evaluator.getEvaluatorId());
 
                         if (!existingEvaluation.isPresent()) {
                             Evaluation evaluation = new Evaluation();
                             evaluation.setApplicant(applicant);
                             evaluation.setCourse(course);
                             evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
-                            evaluation.setEvaluator(department.getDepartmentHead());
+                            evaluation.setEvaluator(evaluator);
                             
                             evaluations.add(evaluationRepository.save(evaluation));
                         } else {
@@ -378,19 +375,21 @@ public class EvaluationService {
             
             // Create evaluations for each preference in the department
             List<Evaluation> evaluations = new ArrayList<>();
+            List<Evaluator> evaluators = evaluatorRepository.findByDepartment_DepartmentId(departmentId);
+            
             for (ApplicationCoursePreference preference : departmentPreferences) {
-                // Check if evaluation already exists for department head
-                if (department.getDepartmentHead() != null) {
+                for (Evaluator evaluator : evaluators) {
+                    // Check if evaluation already exists
                     Optional<Evaluation> existingEvaluation = findExistingEvaluation(
                         applicantId, preference.getCourse().getCourseId(), 
-                        department.getDepartmentHead().getEvaluatorId());
+                        evaluator.getEvaluatorId());
 
                     if (!existingEvaluation.isPresent()) {
                         Evaluation evaluation = new Evaluation();
                         evaluation.setApplicant(applicant);
                         evaluation.setCourse(preference.getCourse());
                         evaluation.setEvaluationStatus(Evaluation.EvaluationStatus.PENDING);
-                        evaluation.setEvaluator(department.getDepartmentHead());
+                        evaluation.setEvaluator(evaluator);
                         
                         evaluations.add(evaluationRepository.save(evaluation));
                     } else {
@@ -408,3 +407,7 @@ public class EvaluationService {
         }
     }
 }
+    
+
+
+  
