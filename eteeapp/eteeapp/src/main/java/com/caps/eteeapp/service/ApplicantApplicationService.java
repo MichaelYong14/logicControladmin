@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 
 import com.caps.eteeapp.model.ApplicantApplication;
 import com.caps.eteeapp.model.Course;
+import com.caps.eteeapp.model.Notification;
+import com.caps.eteeapp.service.NotificationService;
 import com.caps.eteeapp.repository.ApplicantApplicationRepository;
 import com.caps.eteeapp.repository.ApplicantRepository;
 import com.caps.eteeapp.repository.CourseRepository;
@@ -24,6 +26,9 @@ public class ApplicantApplicationService {
     @Autowired
     private ApplicantRepository applicantRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public ApplicantApplication createApplication(ApplicantApplication application) {
         return applicationRepository.save(application);
     }
@@ -38,11 +43,37 @@ public class ApplicantApplicationService {
 
     public ApplicantApplication updateApplication(Long id, ApplicantApplication updatedApplication) {
         return applicationRepository.findById(id).map(application -> {
-            application.setStatus(updatedApplication.getStatus());
+            String oldStatus = application.getStatus();
+            String newStatus = updatedApplication.getStatus();
+
+            application.setStatus(newStatus);
             application.setFinalCourse(updatedApplication.getFinalCourse());
             application.setTotalCoursesSelected(updatedApplication.getTotalCoursesSelected());
             application.setApplicationNotes(updatedApplication.getApplicationNotes());
-            return applicationRepository.save(application);
+
+            ApplicantApplication saved = applicationRepository.save(application);
+
+            // If status changed, create a notification for the applicant
+            try {
+                if (oldStatus != null && newStatus != null && !oldStatus.equals(newStatus)) {
+                    Long applicantId = application.getApplicant() != null ? application.getApplicant().getApplicantId() : null;
+                    if (applicantId != null && notificationService != null) {
+                        String title = "Application Status Updated";
+                        String message = String.format("Your application status changed from %s to %s.", oldStatus, newStatus);
+                        Notification.NotificationType type = Notification.NotificationType.INFO;
+                        if ("ACCEPTED".equalsIgnoreCase(newStatus) || "APPROVED".equalsIgnoreCase(newStatus)) type = Notification.NotificationType.SUCCESS;
+                        else if ("REJECTED".equalsIgnoreCase(newStatus)) type = Notification.NotificationType.ERROR;
+                        else if ("PENDING".equalsIgnoreCase(newStatus) || "UNDER_REVIEW".equalsIgnoreCase(newStatus)) type = Notification.NotificationType.WARNING;
+
+                        notificationService.createNotification(applicantId, title, message, type, null);
+                    }
+                }
+            } catch (Exception ex) {
+                // Do not block the update if notification fails
+                System.err.println("Failed to create application status notification: " + ex.getMessage());
+            }
+
+            return saved;
         }).orElseThrow(() -> new RuntimeException("Application not found with id " + id));
     }
 
@@ -52,13 +83,36 @@ public class ApplicantApplicationService {
 
     public ApplicantApplication updateApplicationStatus(Long id, String status, Long finalCourseId) {
         return applicationRepository.findById(id).map(application -> {
+            String oldStatus = application.getStatus();
             application.setStatus(status);
             if (finalCourseId != null) {
                 Course finalCourse = courseRepository.findById(finalCourseId)
                         .orElseThrow(() -> new RuntimeException("Course not found with id " + finalCourseId));
                 application.setFinalCourse(finalCourse);
             }
-            return applicationRepository.save(application);
+
+            ApplicantApplication saved = applicationRepository.save(application);
+
+            // If status changed, create a notification
+            try {
+                if (oldStatus != null && status != null && !oldStatus.equals(status)) {
+                    Long applicantId = application.getApplicant() != null ? application.getApplicant().getApplicantId() : null;
+                    if (applicantId != null && notificationService != null) {
+                        String title = "Application Status Updated";
+                        String message = String.format("Your application status changed from %s to %s.", oldStatus, status);
+                        Notification.NotificationType type = Notification.NotificationType.INFO;
+                        if ("ACCEPTED".equalsIgnoreCase(status) || "APPROVED".equalsIgnoreCase(status)) type = Notification.NotificationType.SUCCESS;
+                        else if ("REJECTED".equalsIgnoreCase(status)) type = Notification.NotificationType.ERROR;
+                        else if ("PENDING".equalsIgnoreCase(status) || "UNDER_REVIEW".equalsIgnoreCase(status)) type = Notification.NotificationType.WARNING;
+
+                        notificationService.createNotification(applicantId, title, message, type, null);
+                    }
+                }
+            } catch (Exception ex) {
+                System.err.println("Failed to create application status notification: " + ex.getMessage());
+            }
+
+            return saved;
         }).orElseThrow(() -> new RuntimeException("Application not found with id " + id));
     }
 
