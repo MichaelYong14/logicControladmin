@@ -17,7 +17,8 @@ public class Course {
     @JoinColumn(name = "department_id")
     private Department department;
 
-    @Lob
+    // Use TEXT column instead of @Lob to avoid Postgres large object access
+    @Column(columnDefinition = "text")
     private String description;
 
     private int credits;

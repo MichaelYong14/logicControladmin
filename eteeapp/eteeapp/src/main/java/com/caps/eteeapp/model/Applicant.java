@@ -14,7 +14,6 @@ import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Lob;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
@@ -39,10 +38,11 @@ public class Applicant {
 
     private String contactNumber;
 
-    @Lob
+    // Avoid LOB APIs — map large text to TEXT so JDBC driver uses normal text columns
+    @Column(columnDefinition = "text")
     private String address;
 
-    @Lob
+    @Column(columnDefinition = "text")
     private String profileDetails;
 
     private String password;

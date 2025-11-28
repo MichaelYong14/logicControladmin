@@ -32,6 +32,7 @@ public class CourseService {
             course.setDepartment(updatedCourse.getDepartment());
             course.setDescription(updatedCourse.getDescription());
             course.setCredits(updatedCourse.getCredits());
+            course.setCategory(updatedCourse.getCategory());
             return courseRepository.save(course);
         }).orElseThrow(() -> new RuntimeException("Course not found with id " + id));
     }

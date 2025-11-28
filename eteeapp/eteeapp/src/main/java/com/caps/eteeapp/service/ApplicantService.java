@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.caps.eteeapp.model.Applicant;
 import com.caps.eteeapp.model.ApplicantSubjectRecord;
@@ -61,6 +62,7 @@ public class ApplicantService {
         }
     }
 
+    @Transactional(readOnly = true)
     public Optional<Applicant> loginApplicant(String email, String password) {
         Optional<Applicant> applicant = applicantRepository.findByEmail(email);
         if (applicant.isPresent() && password.equals(applicant.get().getPassword())) {

@@ -67,21 +67,55 @@ public class ApplicantController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<Map<String, Object>> loginApplicant(@RequestBody Applicant loginRequest) {
-        Optional<Applicant> applicant = applicantService.loginApplicant(loginRequest.getEmail(), loginRequest.getPassword());
-        if (applicant.isPresent()) {
-            Applicant loggedInApplicant = applicant.get();
-            Map<String, Object> response = new HashMap<>();
-            response.put("message", "Login successful!");
-            response.put("applicantId", loggedInApplicant.getApplicantId());
-            if (loggedInApplicant.getFirstName() == null || loggedInApplicant.getLastName() == null) {
-                response.put("profileIncomplete", true);
-            } else {
-                response.put("profileIncomplete", false);
-            }
-            return ResponseEntity.ok(response);
+    public ResponseEntity<Map<String, Object>> loginApplicant(@RequestBody(required = false) Applicant loginRequest) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (loginRequest == null) {
+            response.put("message", "Request body is required");
+            return ResponseEntity.badRequest().body(response);
         }
-        return ResponseEntity.status(401).body(null); // Invalid email or password
+
+        String email = loginRequest.getEmail();
+        String password = loginRequest.getPassword();
+
+        if (email == null || email.trim().isEmpty() || password == null || password.trim().isEmpty()) {
+            response.put("message", "Email and password are required");
+            return ResponseEntity.badRequest().body(response);
+        }
+
+        logger.info("Login attempt for email: {}", email); // do NOT log password
+
+        try {
+            Optional<Applicant> applicant = applicantService.loginApplicant(email, password);
+            if (applicant.isPresent()) {
+                Applicant loggedInApplicant = applicant.get();
+                response.put("message", "Login successful!");
+                response.put("applicantId", loggedInApplicant.getApplicantId());
+                response.put("profileIncomplete",
+                        loggedInApplicant.getFirstName() == null || loggedInApplicant.getLastName() == null);
+                return ResponseEntity.ok(response);
+            } else {
+                response.put("message", "Invalid email or password");
+                return ResponseEntity.status(401).body(response);
+            }
+        } catch (Exception e) {
+            // log full stacktrace for debugging
+            logger.error("Login error for email {}: {}", email, e.getMessage(), e);
+            response.put("message", "Internal server error");
+
+            // detect Postgres LOB auto-commit issue and provide a helpful hint
+            Throwable cause = e;
+            while (cause != null) {
+                String msg = cause.getMessage();
+                if (msg != null && msg.contains("Large Objects may not be used in auto-commit mode")) {
+                    response.put("hint", "Database LOB access error (Postgres). Add 'spring.jpa.properties.hibernate.jdbc.lob.non_contextual_creation=true' to application.properties OR map LOB column to TEXT.");
+                    break;
+                }
+                cause = cause.getCause();
+            }
+
+            return ResponseEntity.status(500).body(response);
+        }
     }
 
     @PutMapping("/update")

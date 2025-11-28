@@ -24,4 +24,18 @@ public class SubjectService {
     public List<Subject> getSubjectsBySemester(Long semesterId) {
         return subjectRepository.findBySemester_Id(semesterId);
     }
+
+    public Subject updateSubject(Long id, Subject updatedSubject) {
+        return subjectRepository.findById(id).map(subject -> {
+            subject.setSubjectCode(updatedSubject.getSubjectCode());
+            subject.setDescriptiveTitle(updatedSubject.getDescriptiveTitle());
+            subject.setLecHours(updatedSubject.getLecHours());
+            subject.setLabHours(updatedSubject.getLabHours());
+            subject.setUnits(updatedSubject.getUnits());
+            subject.setSemester(updatedSubject.getSemester());
+            subject.setDescription(updatedSubject.getDescription());
+            subject.setPrerequisites(updatedSubject.getPrerequisites());
+            return subjectRepository.save(subject);
+        }).orElseThrow(() -> new RuntimeException("Subject not found with id " + id));
+    }
 }

@@ -33,4 +33,14 @@ public class SubjectController {
         List<Subject> subjects = subjectService.getSubjectsBySemester(semesterId);
         return ResponseEntity.ok(subjects);
     }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Subject> updateSubject(@PathVariable Long id, @RequestBody Subject subject) {
+        try {
+            Subject updatedSubject = subjectService.updateSubject(id, subject);
+            return ResponseEntity.ok(updatedSubject);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
 }
