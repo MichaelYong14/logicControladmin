@@ -7,6 +7,7 @@ import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -25,6 +26,7 @@ import com.caps.eteeapp.service.ApplicantApplicationService;
 import com.caps.eteeapp.service.ApplicationCoursePreferenceService;
 import com.caps.eteeapp.service.DocumentService;
 import com.caps.eteeapp.service.ProgramAdminService;
+import com.caps.eteeapp.service.EmailService;
 
 @CrossOrigin(origins = "*")
 @RestController
@@ -42,6 +44,9 @@ public class ProgramAdminController {
     
     @Autowired
     private ProgramAdminService programAdminService;
+
+    @Autowired
+    private EmailService emailService;
 
     @GetMapping("/applications")
     public ResponseEntity<List<ApplicantApplication>> getAllApplications() {
@@ -128,13 +133,74 @@ public class ProgramAdminController {
             @PathVariable Long id,
             @RequestParam String status,
             @RequestParam(required = false) Long finalCourseId) {
+
         try {
             ApplicantApplication updatedApplication = applicationService.updateApplicationStatus(id, status, finalCourseId);
-            return ResponseEntity.ok(updatedApplication);
+
+            String emailError = null;
+            boolean emailSent = false;
+
+            if (updatedApplication != null && updatedApplication.getApplicant() != null) {
+                String applicantEmail = updatedApplication.getApplicant().getEmail();
+
+                if (applicantEmail != null) {
+
+                    // --------------------------------------------
+                    // EMAIL SUBJECT & BODY BASED ON STATUS
+                    // --------------------------------------------
+                    String subject = "ETEEAP: Application Status Update";
+                    String message;
+
+                    if (status.equalsIgnoreCase("REJECTED")) {
+                        message =
+                            "Your application status has been " + status + ".\n\n" +
+                            "Hello,\n\n" +
+                            "We're sorry to inform you that your application to the ETEEAP Program has been rejected.\n\n" +
+                            "Your application will now be waitlisted until further compliance to the noted denial reason(s).\n\n" +
+                            "For assistance, please contact: eteeap.help@cit.edu\n\n" +
+                            "Thank you.\n" +
+                            "ETEEAP Office";
+
+                    } else {
+                        // DEFAULT (APPROVED, PENDING, REVIEWED, etc.)
+                        message =
+                            "Your application status has been updated to: " + status + "\n\n" +
+                            "Hello,\n\n" +
+                            "Your application to the ETEEAP Program has been reviewed by the program coordinator. " +
+                            "It will now be forwarded to the departments of the respective courses you have applied for.\n\n" +
+                            "Please keep posted for further updates regarding your application.\n\n" +
+                            "Thank you.\n" +
+                            "ETEEAP Office";
+                    }
+
+                    // --------------------------------------------
+                    // SEND EMAIL
+                    // --------------------------------------------
+                    EmailService.EmailSendResult result = emailService.sendEmail(
+                            applicantEmail,
+                            subject,
+                            message
+                    );
+
+                    emailSent = result.isSent();
+                    emailError = result.getError();
+                }
+            }
+
+            // ADD HEADERS FOR FEEDBACK
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("X-Email-Sent", String.valueOf(emailSent));
+            if (emailError != null) {
+                headers.add("X-Email-Error", emailError);
+            }
+
+            return ResponseEntity.ok().headers(headers).body(updatedApplication);
+
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
         }
     }
+
 
     @PostMapping("/applications/{id}/assign-course")
     public ResponseEntity<String> assignCourse(
