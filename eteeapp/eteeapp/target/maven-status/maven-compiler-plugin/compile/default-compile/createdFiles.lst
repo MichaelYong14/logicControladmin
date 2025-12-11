@@ -4,12 +4,15 @@ com\caps\eteeapp\controller\AcceptedApplicantController.class
 com\caps\eteeapp\controller\EvaluatorController$LoginRequest.class
 com\caps\eteeapp\model\Evaluation.class
 com\caps\eteeapp\service\SubjectService.class
+com\caps\eteeapp\service\AssignmentsService.class
 com\caps\eteeapp\controller\CourseController.class
 com\caps\eteeapp\repository\ApplicantRepository.class
+com\caps\eteeapp\controller\AssignmentsController$AssignmentRequest.class
 com\caps\eteeapp\model\Applicant$Gender.class
 com\caps\eteeapp\model\Department.class
 com\caps\eteeapp\service\EmailService.class
 com\caps\eteeapp\repository\EvaluatorRepository.class
+com\caps\eteeapp\repository\AssignmentsRepository.class
 com\caps\eteeapp\service\DocumentService.class
 com\caps\eteeapp\controller\DepartmentController.class
 com\caps\eteeapp\model\ApplicationCoursePreference.class
@@ -28,6 +31,7 @@ com\caps\eteeapp\model\FileResponse$FileResponseBuilder.class
 com\caps\eteeapp\service\ApplicantApplicationService.class
 com\caps\eteeapp\model\ApplicantSubjectRecord.class
 com\caps\eteeapp\service\ApplicationCoursePreferenceService.class
+com\caps\eteeapp\controller\AssignmentsController$StatusRequest.class
 com\caps\eteeapp\service\AcceptedApplicantService.class
 com\caps\eteeapp\config\SecurityConfig.class
 com\caps\eteeapp\model\Course.class
@@ -50,10 +54,12 @@ com\caps\eteeapp\controller\SemesterController.class
 com\caps\eteeapp\service\ProgramAdminService.class
 com\caps\eteeapp\controller\DocumentController.class
 com\caps\eteeapp\model\ApplicantSubjectRecord$RecordStatus.class
+com\caps\eteeapp\model\Assignments.class
 com\caps\eteeapp\EteeappApplication.class
 com\caps\eteeapp\exception\FileStorageException.class
 com\caps\eteeapp\model\Course$Category.class
 com\caps\eteeapp\service\SemesterService.class
+com\caps\eteeapp\model\Assignments$Status.class
 com\caps\eteeapp\model\Applicant.class
 com\caps\eteeapp\model\AcceptedApplicant$AcceptanceStatus.class
 com\caps\eteeapp\service\CurriculumService.class
@@ -74,6 +80,7 @@ com\caps\eteeapp\model\Notification.class
 com\caps\eteeapp\controller\ApplicantApplicationController.class
 com\caps\eteeapp\repository\ApplicantSubjectRecordRepository.class
 com\caps\eteeapp\model\Subject.class
+com\caps\eteeapp\controller\AssignmentsController.class
 com\caps\eteeapp\controller\NotificationController.class
 com\caps\eteeapp\controller\ApplicationCoursePreferenceController.class
 com\caps\eteeapp\model\DocumentType.class
