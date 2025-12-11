@@ -132,10 +132,11 @@ public class ProgramAdminController {
     public ResponseEntity<ApplicantApplication> updateApplicationStatus(
             @PathVariable Long id,
             @RequestParam String status,
-            @RequestParam(required = false) Long finalCourseId) {
+            @RequestParam(required = false) Long finalCourseId,
+            @RequestParam(required = false) String applicationNotes) { // <-- added param
 
         try {
-            ApplicantApplication updatedApplication = applicationService.updateApplicationStatus(id, status, finalCourseId);
+            ApplicantApplication updatedApplication = applicationService.updateApplicationStatus(id, status, finalCourseId, applicationNotes);
 
             String emailError = null;
             boolean emailSent = false;
@@ -149,28 +150,30 @@ public class ProgramAdminController {
                     // EMAIL SUBJECT & BODY BASED ON STATUS
                     // --------------------------------------------
                     String subject = "ETEEAP: Application Status Update";
-                    String message;
+                    StringBuilder messageBuilder = new StringBuilder();
 
                     if (status.equalsIgnoreCase("REJECTED")) {
-                        message =
-                            "Your application status has been " + status + ".\n\n" +
-                            "Hello,\n\n" +
-                            "We're sorry to inform you that your application to the ETEEAP Program has been rejected.\n\n" +
-                            "Your application will now be waitlisted until further compliance to the noted denial reason(s).\n\n" +
-                            "For assistance, please contact: eteeap.help@cit.edu\n\n" +
-                            "Thank you.\n" +
-                            "ETEEAP Office";
-
+                        messageBuilder.append("Your application status has been ").append(status).append(".\n\n")
+                            .append("Hello,\n\n")
+                            .append("We're sorry to inform you that your application to the ETEEAP Program has been rejected.\n\n")
+                            .append("Your application will now be waitlisted until further compliance to the noted denial reason(s).\n\n")
+                            .append("For assistance, please contact: eteeap.help@cit.edu\n\n")
+                            .append("Thank you.\n")
+                            .append("ETEEAP Office");
                     } else {
                         // DEFAULT (APPROVED, PENDING, REVIEWED, etc.)
-                        message =
-                            "Your application status has been updated to: " + status + "\n\n" +
-                            "Hello,\n\n" +
-                            "Your application to the ETEEAP Program has been reviewed by the program coordinator. " +
-                            "It will now be forwarded to the departments of the respective courses you have applied for.\n\n" +
-                            "Please keep posted for further updates regarding your application.\n\n" +
-                            "Thank you.\n" +
-                            "ETEEAP Office";
+                        messageBuilder.append("Your application status has been updated to: ").append(status).append("\n\n")
+                            .append("Hello,\n\n")
+                            .append("Your application to the ETEEAP Program has been reviewed by the program coordinator. ")
+                            .append("It will now be forwarded to the departments of the respective courses you have applied for.\n\n")
+                            .append("Please keep posted for further updates regarding your application.\n\n")
+                            .append("Thank you.\n")
+                            .append("ETEEAP Office");
+                    }
+
+                    // If applicationNotes provided, append them to the message for clarity
+                    if (applicationNotes != null && !applicationNotes.trim().isEmpty()) {
+                        messageBuilder.append("\n\nNotes:\n").append(applicationNotes.trim());
                     }
 
                     // --------------------------------------------
@@ -179,7 +182,7 @@ public class ProgramAdminController {
                     EmailService.EmailSendResult result = emailService.sendEmail(
                             applicantEmail,
                             subject,
-                            message
+                            messageBuilder.toString()
                     );
 
                     emailSent = result.isSent();
@@ -192,6 +195,10 @@ public class ProgramAdminController {
             headers.add("X-Email-Sent", String.valueOf(emailSent));
             if (emailError != null) {
                 headers.add("X-Email-Error", emailError);
+            }
+            // Echo back the applicationNotes that were received (if any)
+            if (applicationNotes != null) {
+                headers.add("X-Application-Notes", applicationNotes);
             }
 
             return ResponseEntity.ok().headers(headers).body(updatedApplication);

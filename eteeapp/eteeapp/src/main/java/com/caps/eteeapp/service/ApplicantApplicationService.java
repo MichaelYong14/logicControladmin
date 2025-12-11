@@ -81,39 +81,41 @@ public class ApplicantApplicationService {
         applicationRepository.deleteById(id);
     }
 
+    /**
+     * Existing three-arg method now delegates to the four-arg variant for compatibility.
+     */
     public ApplicantApplication updateApplicationStatus(Long id, String status, Long finalCourseId) {
-        return applicationRepository.findById(id).map(application -> {
-            String oldStatus = application.getStatus();
+        return updateApplicationStatus(id, status, finalCourseId, null);
+    }
+
+    /**
+     * Update application status and optionally set finalCourseId and applicationNotes, then persist.
+     */
+    public ApplicantApplication updateApplicationStatus(Long id, String status, Long finalCourseId, String applicationNotes) {
+        Optional<ApplicantApplication> opt = applicationRepository.findById(id);
+        if (opt.isPresent()) {
+            ApplicantApplication application = opt.get();
+
+            // update status
             application.setStatus(status);
+
+            // set final course reference by id if provided
             if (finalCourseId != null) {
-                Course finalCourse = courseRepository.findById(finalCourseId)
-                        .orElseThrow(() -> new RuntimeException("Course not found with id " + finalCourseId));
-                application.setFinalCourse(finalCourse);
+                Course c = new Course();
+                c.setCourseId(finalCourseId);
+                application.setFinalCourse(c);
             }
 
-            ApplicantApplication saved = applicationRepository.save(application);
-
-            // If status changed, create a notification
-            try {
-                if (oldStatus != null && status != null && !oldStatus.equals(status)) {
-                    Long applicantId = application.getApplicant() != null ? application.getApplicant().getApplicantId() : null;
-                    if (applicantId != null && notificationService != null) {
-                        String title = "Application Status Updated";
-                        String message = String.format("Your application status changed from %s to %s.", oldStatus, status);
-                        Notification.NotificationType type = Notification.NotificationType.INFO;
-                        if ("ACCEPTED".equalsIgnoreCase(status) || "APPROVED".equalsIgnoreCase(status)) type = Notification.NotificationType.SUCCESS;
-                        else if ("REJECTED".equalsIgnoreCase(status)) type = Notification.NotificationType.ERROR;
-                        else if ("PENDING".equalsIgnoreCase(status) || "UNDER_REVIEW".equalsIgnoreCase(status)) type = Notification.NotificationType.WARNING;
-
-                        notificationService.createNotification(applicantId, title, message, type, null);
-                    }
-                }
-            } catch (Exception ex) {
-                System.err.println("Failed to create application status notification: " + ex.getMessage());
+            // persist applicationNotes if provided (overwrite existing notes)
+            if (applicationNotes != null) {
+                application.setApplicationNotes(applicationNotes);
             }
 
-            return saved;
-        }).orElseThrow(() -> new RuntimeException("Application not found with id " + id));
+            // save and return updated entity
+            return applicationRepository.save(application);
+        } else {
+            throw new RuntimeException("Application not found with id " + id);
+        }
     }
 
     public List<ApplicantApplication> getApplicationsByApplicantId(Long applicantId) {

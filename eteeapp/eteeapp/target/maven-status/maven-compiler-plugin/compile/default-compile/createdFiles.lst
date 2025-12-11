@@ -8,6 +8,7 @@ com\caps\eteeapp\controller\CourseController.class
 com\caps\eteeapp\repository\ApplicantRepository.class
 com\caps\eteeapp\model\Applicant$Gender.class
 com\caps\eteeapp\model\Department.class
+com\caps\eteeapp\service\EmailService.class
 com\caps\eteeapp\repository\EvaluatorRepository.class
 com\caps\eteeapp\service\DocumentService.class
 com\caps\eteeapp\controller\DepartmentController.class
@@ -56,6 +57,7 @@ com\caps\eteeapp\service\SemesterService.class
 com\caps\eteeapp\model\Applicant.class
 com\caps\eteeapp\model\AcceptedApplicant$AcceptanceStatus.class
 com\caps\eteeapp\service\CurriculumService.class
+com\caps\eteeapp\service\EmailService$EmailSendResult.class
 com\caps\eteeapp\exception\FileNotFoundException.class
 com\caps\eteeapp\controller\ProgramAdminController.class
 com\caps\eteeapp\controller\EvaluationController.class

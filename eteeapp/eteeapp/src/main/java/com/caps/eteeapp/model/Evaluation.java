@@ -1,4 +1,4 @@
-    package com.caps.eteeapp.model;
+package com.caps.eteeapp.model;
 
     import java.util.Date;
 
@@ -10,7 +10,6 @@
     import jakarta.persistence.GenerationType;
     import jakarta.persistence.Id;
     import jakarta.persistence.JoinColumn;
-    import jakarta.persistence.Lob;
     import jakarta.persistence.ManyToOne;
     import jakarta.persistence.Temporal;
     import jakarta.persistence.TemporalType;
@@ -44,7 +43,7 @@
         @Column(nullable = false)
         private EvaluationStatus evaluationStatus = EvaluationStatus.PENDING;
 
-        @Lob
+        @Column(columnDefinition = "TEXT")
         private String comments;
 
         @Temporal(TemporalType.TIMESTAMP)
@@ -54,7 +53,7 @@
         @Column(name = "date_created")
         private Date dateCreated = new Date();
 
-        @Lob
+        @Column(columnDefinition = "TEXT")
         private String recommendation;
 
         // Getters and setters...

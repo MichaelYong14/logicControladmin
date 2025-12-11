@@ -1,4 +1,4 @@
 -------------------------------------------------------------------------------
 Test set: com.caps.eteeapp.EteeappApplicationTests
 -------------------------------------------------------------------------------
-Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 33.37 s -- in com.caps.eteeapp.EteeappApplicationTests
+Tests run: 1, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 39.63 s -- in com.caps.eteeapp.EteeappApplicationTests
