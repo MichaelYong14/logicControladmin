@@ -47,6 +47,7 @@ public class EvaluationService {
     @Autowired
     private ApplicantApplicationRepository applicationRepository;
 
+
     // Method to get all evaluations
     public List<Evaluation> getAllEvaluations() {
         return evaluationRepository.findAll();
@@ -406,8 +407,20 @@ public class EvaluationService {
             throw new RuntimeException("Failed to forward applicant to department: " + e.getMessage(), e);
         }
     }
+
+ 
+
+    // Update all evaluations for a given applicantId, applicationId, and courseId
+    public int updateStatusByApplicantApplicationAndCourse(Long applicantId, Long applicationId, Long courseId, Evaluation.EvaluationStatus status) {
+        List<Evaluation> evaluations = evaluationRepository.findByApplicant_ApplicantIdAndApplication_ApplicationIdAndCourse_CourseId(applicantId, applicationId, courseId);
+        int updated = 0;
+        for (Evaluation evaluation : evaluations) {
+            updateEvaluationStatus(evaluation, status);
+            updated++;
+        }
+        return updated;
+    }
 }
-    
 
 
-  
+

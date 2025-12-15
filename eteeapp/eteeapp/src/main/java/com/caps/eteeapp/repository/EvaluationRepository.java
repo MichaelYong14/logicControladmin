@@ -41,4 +41,7 @@ public interface EvaluationRepository extends JpaRepository<Evaluation, Long> {
     
     // Find the first evaluation by applicant and course (for DTO mapping)
     Optional<Evaluation> findFirstByApplicant_ApplicantIdAndCourse_CourseId(Long applicantId, Long courseId);
+
+    // Find all evaluations by applicantId, applicationId, and courseId
+    List<Evaluation> findByApplicant_ApplicantIdAndApplication_ApplicationIdAndCourse_CourseId(Long applicantId, Long applicationId, Long courseId);
 }

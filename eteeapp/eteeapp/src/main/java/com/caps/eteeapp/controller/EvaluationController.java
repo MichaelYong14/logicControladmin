@@ -160,6 +160,18 @@ public class EvaluationController {
         return ResponseEntity.status(404).body(null);
     }
 
+
+    // --- New endpoint to update all evaluations for applicantId, applicationId, and courseId ---
+    @PutMapping("/update-status-by-applicant-application-course")
+    public ResponseEntity<Integer> updateStatusByApplicantApplicationAndCourse(
+            @RequestParam Long applicantId,
+            @RequestParam Long applicationId,
+            @RequestParam Long courseId,
+            @RequestParam Evaluation.EvaluationStatus status) {
+        int updatedCount = evaluationService.updateStatusByApplicantApplicationAndCourse(applicantId, applicationId, courseId, status);
+        return ResponseEntity.ok(updatedCount);
+    }
+
     @PostMapping
     public ResponseEntity<Evaluation> createEvaluation(@RequestBody Evaluation evaluation) {
         Evaluation createdEvaluation = evaluationService.createEvaluation(evaluation);
