@@ -12,15 +12,23 @@ public class CoursePreferenceWithEvaluationDTO {
     private Status status; // from ApplicationCoursePreference
     private EvaluationStatus evaluationStatus; // from Evaluation
 
+    private String comments; // Add this field
+
     // Constructors
     public CoursePreferenceWithEvaluationDTO() {}
 
-    public CoursePreferenceWithEvaluationDTO(Long preferenceId, Course course, PriorityOrder priorityOrder, Status status, EvaluationStatus evaluationStatus) {
+    public CoursePreferenceWithEvaluationDTO(Long preferenceId, Course course, PriorityOrder priorityOrder, Status status, EvaluationStatus evaluationStatus, String comments) {
         this.preferenceId = preferenceId;
         this.course = course;
         this.priorityOrder = priorityOrder;
         this.status = status;
         this.evaluationStatus = evaluationStatus;
+        this.comments = comments;
+    }
+
+    // Optionally keep the old constructor for backward compatibility
+    public CoursePreferenceWithEvaluationDTO(Long preferenceId, Course course, PriorityOrder priorityOrder, Status status, EvaluationStatus evaluationStatus) {
+        this(preferenceId, course, priorityOrder, status, evaluationStatus, null);
     }
 
     // Getters and setters
@@ -38,4 +46,7 @@ public class CoursePreferenceWithEvaluationDTO {
 
     public EvaluationStatus getEvaluationStatus() { return evaluationStatus; }
     public void setEvaluationStatus(EvaluationStatus evaluationStatus) { this.evaluationStatus = evaluationStatus; }
+
+    public String getComments() { return comments; }
+    public void setComments(String comments) { this.comments = comments; }
 }

@@ -8,13 +8,12 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Lob;
-import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Temporal;
 import jakarta.persistence.TemporalType;
 import jakarta.persistence.Transient;
+import jakarta.persistence.ManyToOne;
 import lombok.Data;
 
 @Data
@@ -44,7 +43,8 @@ public class ApplicantApplication {
 
     private int totalCoursesSelected;
 
-    @Lob
+    //@Lob
+    @jakarta.persistence.Column(columnDefinition = "TEXT")
     private String applicationNotes;
 
     // Add transient fields to hold related data that won't be persisted in this table

@@ -90,13 +90,15 @@ public class ApplicationCoursePreferenceService {
                 ).orElse(null);
 
             EvaluationStatus evalStatus = eval != null ? eval.getEvaluationStatus() : EvaluationStatus.PENDING;
+            String comments = eval != null ? eval.getComments() : null;
 
             dtos.add(new CoursePreferenceWithEvaluationDTO(
                 pref.getPreferenceId(),
                 pref.getCourse(),
                 pref.getPriorityOrder(),
                 pref.getStatus(),
-                evalStatus
+                evalStatus,
+                comments // Pass comments to DTO
             ));
         }
         return dtos;

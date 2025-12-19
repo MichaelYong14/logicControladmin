@@ -47,6 +47,9 @@ public class EvaluationService {
     @Autowired
     private ApplicantApplicationRepository applicationRepository;
 
+    @Autowired
+    private EvaluationNotificationsService evaluationNotificationsService;
+
 
     // Method to get all evaluations
     public List<Evaluation> getAllEvaluations() {
@@ -61,6 +64,11 @@ public class EvaluationService {
     // Method to get evaluations by applicant ID
     public List<Evaluation> getEvaluationsByApplicantId(Long applicantId) {
         return evaluationRepository.findByApplicant_ApplicantId(applicantId);
+    }
+
+    // Method to get evaluations by application ID
+    public List<Evaluation> getEvaluationsByApplicationId(Long applicationId) {
+        return evaluationRepository.findByApplication_ApplicationId(applicationId);
     }
 
     // Method to get pending evaluations
@@ -174,6 +182,13 @@ public class EvaluationService {
                             }
                             
                             evaluationRepository.save(evaluation);
+
+                            // --- Create notification for this evaluation ---
+                            evaluationNotificationsService.createForwardedNotification(
+                                application, course, evaluator
+                            );
+                            // --- end notification ---
+
                             courseForwarded = true;
                         }
                     }
@@ -411,11 +426,18 @@ public class EvaluationService {
  
 
     // Update all evaluations for a given applicantId, applicationId, and courseId
-    public int updateStatusByApplicantApplicationAndCourse(Long applicantId, Long applicationId, Long courseId, Evaluation.EvaluationStatus status) {
+    public int updateStatusByApplicantApplicationAndCourse(Long applicantId, Long applicationId, Long courseId, Evaluation.EvaluationStatus status, String comments) {
         List<Evaluation> evaluations = evaluationRepository.findByApplicant_ApplicantIdAndApplication_ApplicationIdAndCourse_CourseId(applicantId, applicationId, courseId);
         int updated = 0;
         for (Evaluation evaluation : evaluations) {
-            updateEvaluationStatus(evaluation, status);
+            evaluation.setEvaluationStatus(status);
+            if (comments != null) {
+                evaluation.setComments(comments);
+            }
+            if (status != Evaluation.EvaluationStatus.PENDING) {
+                evaluation.setDateEvaluated(new java.util.Date());
+            }
+            evaluationRepository.save(evaluation);
             updated++;
         }
         return updated;

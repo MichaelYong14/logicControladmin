@@ -31,6 +31,7 @@ C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\Document.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\DocumentType.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\Evaluation.java
+C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\EvaluationNotification.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\Evaluator.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\FileResponse.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\Notification.java
@@ -47,6 +48,7 @@ C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\CurriculumRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\DepartmentRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\DocumentRepository.java
+C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\EvaluationNotificationRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\EvaluationRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\EvaluatorRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\NotificationRepository.java
@@ -64,6 +66,7 @@ C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\DepartmentService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\DocumentService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\EmailService.java
+C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\EvaluationNotificationsService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\EvaluationService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\EvaluatorService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\FileStorageService.java

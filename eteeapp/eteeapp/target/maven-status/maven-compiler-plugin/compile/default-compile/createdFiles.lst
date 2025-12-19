@@ -1,5 +1,6 @@
 com\caps\eteeapp\controller\EvaluatorController$EvaluatorStatusResponse.class
 com\caps\eteeapp\model\Curriculum.class
+com\caps\eteeapp\repository\EvaluationNotificationRepository.class
 com\caps\eteeapp\controller\AcceptedApplicantController.class
 com\caps\eteeapp\controller\EvaluatorController$LoginRequest.class
 com\caps\eteeapp\model\Evaluation.class
@@ -14,6 +15,7 @@ com\caps\eteeapp\service\EmailService.class
 com\caps\eteeapp\repository\EvaluatorRepository.class
 com\caps\eteeapp\repository\AssignmentsRepository.class
 com\caps\eteeapp\service\DocumentService.class
+com\caps\eteeapp\model\EvaluationNotification.class
 com\caps\eteeapp\controller\DepartmentController.class
 com\caps\eteeapp\model\ApplicationCoursePreference.class
 com\caps\eteeapp\repository\SubjectRepository.class
@@ -80,6 +82,7 @@ com\caps\eteeapp\model\Notification.class
 com\caps\eteeapp\controller\ApplicantApplicationController.class
 com\caps\eteeapp\repository\ApplicantSubjectRecordRepository.class
 com\caps\eteeapp\model\Subject.class
+com\caps\eteeapp\service\EvaluationNotificationsService.class
 com\caps\eteeapp\controller\AssignmentsController.class
 com\caps\eteeapp\controller\NotificationController.class
 com\caps\eteeapp\controller\ApplicationCoursePreferenceController.class

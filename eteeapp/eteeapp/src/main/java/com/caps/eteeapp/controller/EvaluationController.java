@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.caps.eteeapp.model.Evaluation;
+import com.caps.eteeapp.model.EvaluationNotification;
+import com.caps.eteeapp.service.EvaluationNotificationsService;
 import com.caps.eteeapp.service.EvaluationService;
 
 @CrossOrigin(origins = "*")
@@ -26,6 +28,9 @@ public class EvaluationController {
 
     @Autowired
     private EvaluationService evaluationService;
+
+    @Autowired
+    private EvaluationNotificationsService evaluationNotificationsService;
 
     @PostMapping("/forward-application/{applicantId}")
     public ResponseEntity<List<Evaluation>> forwardApplication(
@@ -114,6 +119,20 @@ public class EvaluationController {
         return ResponseEntity.ok(evaluations);
     }
 
+    // Add this endpoint to get all evaluations by applicantId
+    @GetMapping("/by-applicant/{applicantId}")
+    public ResponseEntity<List<Evaluation>> getAllEvaluationsByApplicantId(@PathVariable Long applicantId) {
+        List<Evaluation> evaluations = evaluationService.getEvaluationsByApplicantId(applicantId);
+        return ResponseEntity.ok(evaluations);
+    }
+
+    // Add this endpoint to get all evaluations by applicationId
+    @GetMapping("/by-application/{applicationId}")
+    public ResponseEntity<List<Evaluation>> getAllEvaluationsByApplicationId(@PathVariable Long applicationId) {
+        List<Evaluation> evaluations = evaluationService.getEvaluationsByApplicationId(applicationId);
+        return ResponseEntity.ok(evaluations);
+    }
+
     @GetMapping("/pending")
     public ResponseEntity<List<Evaluation>> getPendingEvaluations() {
         List<Evaluation> evaluations = evaluationService.getPendingEvaluations();
@@ -167,8 +186,9 @@ public class EvaluationController {
             @RequestParam Long applicantId,
             @RequestParam Long applicationId,
             @RequestParam Long courseId,
-            @RequestParam Evaluation.EvaluationStatus status) {
-        int updatedCount = evaluationService.updateStatusByApplicantApplicationAndCourse(applicantId, applicationId, courseId, status);
+            @RequestParam Evaluation.EvaluationStatus status,
+            @RequestParam(required = false) String comments) {
+        int updatedCount = evaluationService.updateStatusByApplicantApplicationAndCourse(applicantId, applicationId, courseId, status, comments);
         return ResponseEntity.ok(updatedCount);
     }
 
@@ -188,5 +208,23 @@ public class EvaluationController {
             return ResponseEntity.ok(result);
         }
         return ResponseEntity.status(404).body(null);
+    }
+
+    // --- Notification endpoints ---
+
+    @GetMapping("/notifications/evaluator/{evaluatorId}")
+    public ResponseEntity<List<EvaluationNotification>> getNotificationsByEvaluator(@PathVariable Long evaluatorId) {
+        List<EvaluationNotification> notifications = evaluationNotificationsService.getNotificationsByEvaluatorId(evaluatorId);
+        return ResponseEntity.ok(notifications);
+    }
+
+    @PutMapping("/notifications/{notificationId}/mark-as-read")
+    public ResponseEntity<String> markNotificationAsRead(@PathVariable Long notificationId) {
+        boolean updated = evaluationNotificationsService.markNotificationAsRead(notificationId);
+        if (updated) {
+            return ResponseEntity.ok("Notification marked as read.");
+        } else {
+            return ResponseEntity.status(404).body("Notification not found.");
+        }
     }
 }
