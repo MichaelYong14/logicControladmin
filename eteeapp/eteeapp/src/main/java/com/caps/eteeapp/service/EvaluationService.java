@@ -22,6 +22,8 @@ import com.caps.eteeapp.repository.CourseRepository;
 import com.caps.eteeapp.repository.DepartmentRepository;
 import com.caps.eteeapp.repository.EvaluationRepository;
 import com.caps.eteeapp.repository.EvaluatorRepository;
+import com.caps.eteeapp.service.NotificationService;
+import com.caps.eteeapp.model.Notification;
 
 @Service
 public class EvaluationService {
@@ -49,6 +51,9 @@ public class EvaluationService {
 
     @Autowired
     private EvaluationNotificationsService evaluationNotificationsService;
+
+    @Autowired
+    private NotificationService notificationService;
 
 
     // Method to get all evaluations
@@ -93,7 +98,44 @@ public class EvaluationService {
         if (status != Evaluation.EvaluationStatus.PENDING) {
             evaluation.setDateEvaluated(new Date());
         }
-        return evaluationRepository.save(evaluation);
+        Evaluation saved = evaluationRepository.save(evaluation);
+
+        // Send notification to applicant if status is updated to APPROVED
+        try {
+            if (status == Evaluation.EvaluationStatus.APPROVED) {
+                String firstName = evaluation.getApplicant() != null ? evaluation.getApplicant().getFirstName() : "";
+                String courseName = evaluation.getCourse() != null ? evaluation.getCourse().getCourseName() : "";
+                String departmentName = (evaluation.getCourse() != null && evaluation.getCourse().getDepartment() != null)
+                        ? evaluation.getCourse().getDepartment().getDepartmentName() : "";
+                String evaluatorName = evaluation.getEvaluator() != null ? evaluation.getEvaluator().getName() : "";
+
+                String title = "Evaluation Status Update";
+                String message = String.format(
+                    "Hi %s, your application to %s has been APPROVED by department %s Evaluator Mr./Mrs. %s. Your application will now proceed to accreditation.",
+                    firstName, courseName, departmentName, evaluatorName
+                );
+                Notification.NotificationType type = Notification.NotificationType.SUCCESS;
+
+                Long applicantId = evaluation.getApplicant() != null ? evaluation.getApplicant().getApplicantId() : null;
+                System.out.println("DEBUG: applicantId=" + applicantId);
+                System.out.println("DEBUG: applicant=" + evaluation.getApplicant());
+                System.out.println("DEBUG: notificationService=" + notificationService);
+                if (applicantId != null && notificationService != null) {
+                    Notification notif = notificationService.createNotification(applicantId, title, message, type, null);
+                    System.out.println("DEBUG: Notification created: " + notif);
+                    if (notif == null) {
+                        System.out.println("DEBUG: NotificationService returned null. Check if applicant exists in DB.");
+                    }
+                } else {
+                    System.out.println("DEBUG: applicantId or notificationService is null, notification not sent.");
+                }
+            }
+        } catch (Exception ex) {
+            System.err.println("Failed to create evaluation status notification: " + ex.getMessage());
+            ex.printStackTrace();
+        }
+
+        return saved;
     }
 
     // Create a new evaluation
