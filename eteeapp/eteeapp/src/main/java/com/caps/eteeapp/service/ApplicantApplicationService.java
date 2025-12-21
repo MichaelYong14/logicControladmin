@@ -70,7 +70,9 @@ public class ApplicantApplicationService {
                                 firstName
                             );
                             Notification.NotificationType type = Notification.NotificationType.SUCCESS;
-                            Notification notif = notificationService.createNotification(applicantId, title, message, type, null);
+                            Notification notif = notificationService.createNotification(
+                                applicantId, null, null, title, message, type, null
+                            );
                             System.out.println("DEBUG: Notification created: " + notif);
                         } else {
                             String title = "Application Status Updated";
@@ -80,7 +82,9 @@ public class ApplicantApplicationService {
                             else if ("REJECTED".equalsIgnoreCase(newStatus)) type = Notification.NotificationType.ERROR;
                             else if ("PENDING".equalsIgnoreCase(newStatus) || "UNDER_REVIEW".equalsIgnoreCase(newStatus)) type = Notification.NotificationType.WARNING;
 
-                            Notification notif = notificationService.createNotification(applicantId, title, message, type, null);
+                            Notification notif = notificationService.createNotification(
+                                applicantId, null, null, title, message, type, null
+                            );
                             System.out.println("DEBUG: Notification created: " + notif);
                         }
                     } else {
@@ -153,7 +157,9 @@ public class ApplicantApplicationService {
                                 firstName
                             );
                             Notification.NotificationType type = Notification.NotificationType.SUCCESS;
-                            Notification notif = notificationService.createNotification(applicantId, title, message, type, null);
+                            Notification notif = notificationService.createNotification(
+                                applicantId, null, null, title, message, type, null
+                            );
                             System.out.println("DEBUG: Notification created: " + notif);
                         } else {
                             String title = "Application Status Updated";
@@ -163,7 +169,9 @@ public class ApplicantApplicationService {
                             else if ("REJECTED".equalsIgnoreCase(newStatus)) type = Notification.NotificationType.ERROR;
                             else if ("PENDING".equalsIgnoreCase(newStatus) || "UNDER_REVIEW".equalsIgnoreCase(newStatus)) type = Notification.NotificationType.WARNING;
 
-                            Notification notif = notificationService.createNotification(applicantId, title, message, type, null);
+                            Notification notif = notificationService.createNotification(
+                                applicantId, null, null, title, message, type, null
+                            );
                             System.out.println("DEBUG: Notification created: " + notif);
                         }
                     } else {

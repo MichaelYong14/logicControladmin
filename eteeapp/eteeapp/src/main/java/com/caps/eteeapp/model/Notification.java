@@ -13,9 +13,18 @@ public class Notification {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+
     @ManyToOne
     @JoinColumn(name = "applicant_id")
     private Applicant applicant;
+
+    @ManyToOne
+    @JoinColumn(name = "evaluator_id")
+    private Evaluator evaluator;
+
+    @ManyToOne
+    @JoinColumn(name = "program_admin_id")
+    private ProgramAdmin programAdmin;
 
     @Column(length = 200)
     private String title;

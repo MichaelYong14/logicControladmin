@@ -27,4 +27,8 @@ public class ProgramAdmin {
     private String password;
 
     // Getters and setters...
+
+    public Long getProgramAdminId() {
+        return this.adminId;
+    }
 }

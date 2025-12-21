@@ -124,7 +124,9 @@ public class ApplicantSubjectRecordService {
                         else if (newStatus == ApplicantSubjectRecord.RecordStatus.PENDING) type = Notification.NotificationType.WARNING;
 
                         // No clientTempId when server-created (originating from backend flow)
-                        notificationService.createNotification(applicantId, title, message, type, null);
+                        notificationService.createNotification(
+                            applicantId, null, null, title, message, type, null
+                        );
                     }
                 } catch (Exception ex) {
                     // Don't block save on notification failure

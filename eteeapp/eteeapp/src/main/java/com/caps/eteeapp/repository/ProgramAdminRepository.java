@@ -12,3 +12,5 @@ public interface ProgramAdminRepository extends JpaRepository<ProgramAdmin, Long
     
     // Additional query methods can be added here if needed
 }
+
+// Repository is correctly implemented for use in NotificationService.

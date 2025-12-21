@@ -40,3 +40,5 @@ public interface EvaluatorRepository extends JpaRepository<Evaluator, Long> {
     @Query("SELECT e FROM Evaluation e JOIN e.course c WHERE c.department = :department")
     List<Evaluation> findEvaluationsByCourseDepartment(@Param("department") Department department);
 }
+
+// Repository is correctly implemented for use in NotificationService.

@@ -121,7 +121,9 @@ public class EvaluationService {
                 System.out.println("DEBUG: applicant=" + evaluation.getApplicant());
                 System.out.println("DEBUG: notificationService=" + notificationService);
                 if (applicantId != null && notificationService != null) {
-                    Notification notif = notificationService.createNotification(applicantId, title, message, type, null);
+                    Notification notif = notificationService.createNotification(
+                        applicantId, null, null, title, message, type, null
+                    );
                     System.out.println("DEBUG: Notification created: " + notif);
                     if (notif == null) {
                         System.out.println("DEBUG: NotificationService returned null. Check if applicant exists in DB.");
@@ -160,7 +162,7 @@ public class EvaluationService {
         return evaluationRepository.save(existingEvaluation);
     }
 
-    // New method to forward all courses for evaluation
+    // New method to forward all courses for evaluation. THIS IS THE MAIN METHOD TO FOCUS ON
     public int forwardAllCoursesForEvaluation(Long applicantId, List<Long> courseIds, Long applicationId) {
         try {
             // Find the applicant
@@ -230,6 +232,32 @@ public class EvaluationService {
                                 application, course, evaluator
                             );
                             // --- end notification ---
+
+                            // --- Custom notification for evaluator ---
+                            try {
+                                String firstName = evaluation.getApplicant() != null ? evaluation.getApplicant().getFirstName() : "";
+                                String courseName = evaluation.getCourse() != null ? evaluation.getCourse().getCourseName() : "";
+                                String departmentName = (evaluation.getCourse() != null && evaluation.getCourse().getDepartment() != null)
+                                        ? evaluation.getCourse().getDepartment().getDepartmentName() : "";
+                                String evaluatorName = evaluation.getEvaluator() != null ? evaluation.getEvaluator().getName() : "";
+
+                                String title = String.format("New Application for Evaluation (%s department), %s", departmentName, departmentName);
+                                String message = String.format(
+                                    "Good day, Mr./Mrs. %s. %s's application for %s has been forwarded by ETEEAP Coordinator to your department for evaluation.",
+                                    evaluatorName, firstName, courseName
+                                );
+                                Notification.NotificationType type = Notification.NotificationType.INFO;
+
+                                Long evaluatorUserId = evaluator.getEvaluatorId();
+                                if (evaluatorUserId != null && notificationService != null) {
+                                    notificationService.createNotification(
+                                        null, evaluatorUserId, null, title, message, type, null
+                                    );
+                                }
+                            } catch (Exception ex) {
+                                System.err.println("Failed to create evaluator notification: " + ex.getMessage());
+                            }
+                            // --- end custom notification ---
 
                             courseForwarded = true;
                         }
