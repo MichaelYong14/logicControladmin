@@ -30,7 +30,7 @@ public class NotificationService {
     private ProgramAdminRepository programAdminRepository;
 
     // Create notification for any user type
-    public Notification createNotification(Long applicantId, Long evaluatorId, Long programAdminId, String title, String message, Notification.NotificationType type, String clientTempId) {
+    public Notification createNotification(Long applicantId, Long evaluatorId, Long programAdminId, String title, String message, Notification.NotificationType type, String clientTempId, String category, String action) {
         Notification notification = new Notification();
         if (applicantId != null) {
             Applicant applicant = applicantRepository.findById(applicantId).orElse(null);
@@ -50,6 +50,8 @@ public class NotificationService {
         notification.setTitle(title);
         notification.setMessage(message);
         notification.setClientTempId(clientTempId);
+        notification.setCategory(category);
+        notification.setAction(action);
         notification.setType(type != null ? type : Notification.NotificationType.INFO);
         notification.setCreatedAt(new Date());
         notification.setRead(false);

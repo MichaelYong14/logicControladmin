@@ -26,6 +26,7 @@ public class Notification {
     @JoinColumn(name = "program_admin_id")
     private ProgramAdmin programAdmin;
 
+
     @Column(length = 200)
     private String title;
 
@@ -34,6 +35,12 @@ public class Notification {
 
     @Column(length = 128)
     private String clientTempId;
+
+    @Column(length = 64)
+    private String category;
+
+    @Column(columnDefinition = "TEXT")
+    private String action; // Store as JSON string
 
     @Enumerated(EnumType.STRING)
     private NotificationType type = NotificationType.INFO;

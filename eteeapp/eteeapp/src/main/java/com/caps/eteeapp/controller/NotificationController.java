@@ -83,8 +83,10 @@ public class NotificationController {
         if (applicantId == null && evaluatorId == null && programAdminId == null) return ResponseEntity.badRequest().build();
         Notification.NotificationType type = payload.getType();
         String clientTempId = payload.getClientTempId();
+        String category = payload.getCategory();
+        String action = payload.getAction();
         Notification created = notificationService.createNotification(
-                applicantId, evaluatorId, programAdminId, payload.getTitle(), payload.getMessage(), type, clientTempId);
+                applicantId, evaluatorId, programAdminId, payload.getTitle(), payload.getMessage(), type, clientTempId, category, action);
         if (created == null) return ResponseEntity.badRequest().build();
         return ResponseEntity.ok(created);
     }

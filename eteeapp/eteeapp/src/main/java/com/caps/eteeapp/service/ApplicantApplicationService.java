@@ -71,7 +71,7 @@ public class ApplicantApplicationService {
                             );
                             Notification.NotificationType type = Notification.NotificationType.SUCCESS;
                             Notification notif = notificationService.createNotification(
-                                applicantId, null, null, title, message, type, null
+                                applicantId, null, null, title, message, type, null, null, null
                             );
                             System.out.println("DEBUG: Notification created: " + notif);
                         } else {
@@ -83,7 +83,7 @@ public class ApplicantApplicationService {
                             else if ("PENDING".equalsIgnoreCase(newStatus) || "UNDER_REVIEW".equalsIgnoreCase(newStatus)) type = Notification.NotificationType.WARNING;
 
                             Notification notif = notificationService.createNotification(
-                                applicantId, null, null, title, message, type, null
+                                applicantId, null, null, title, message, type, null, null, null
                             );
                             System.out.println("DEBUG: Notification created: " + notif);
                         }
@@ -158,7 +158,7 @@ public class ApplicantApplicationService {
                             );
                             Notification.NotificationType type = Notification.NotificationType.SUCCESS;
                             Notification notif = notificationService.createNotification(
-                                applicantId, null, null, title, message, type, null
+                                applicantId, null, null, title, message, type, null, null, null
                             );
                             System.out.println("DEBUG: Notification created: " + notif);
                         } else {
@@ -170,7 +170,7 @@ public class ApplicantApplicationService {
                             else if ("PENDING".equalsIgnoreCase(newStatus) || "UNDER_REVIEW".equalsIgnoreCase(newStatus)) type = Notification.NotificationType.WARNING;
 
                             Notification notif = notificationService.createNotification(
-                                applicantId, null, null, title, message, type, null
+                                applicantId, null, null, title, message, type, null, null, null
                             );
                             System.out.println("DEBUG: Notification created: " + notif);
                         }
