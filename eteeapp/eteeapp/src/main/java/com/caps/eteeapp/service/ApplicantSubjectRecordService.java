@@ -125,7 +125,7 @@ public class ApplicantSubjectRecordService {
 
                         // No clientTempId when server-created (originating from backend flow)
                         notificationService.createNotification(
-                            applicantId, null, null, title, message, type, null
+                            applicantId, null, null, title, message, type, null, null, null
                         );
                     }
                 } catch (Exception ex) {

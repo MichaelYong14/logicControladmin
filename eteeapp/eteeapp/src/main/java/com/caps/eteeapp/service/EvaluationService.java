@@ -22,7 +22,6 @@ import com.caps.eteeapp.repository.CourseRepository;
 import com.caps.eteeapp.repository.DepartmentRepository;
 import com.caps.eteeapp.repository.EvaluationRepository;
 import com.caps.eteeapp.repository.EvaluatorRepository;
-import com.caps.eteeapp.service.NotificationService;
 import com.caps.eteeapp.model.Notification;
 
 @Service
@@ -122,7 +121,7 @@ public class EvaluationService {
                 System.out.println("DEBUG: notificationService=" + notificationService);
                 if (applicantId != null && notificationService != null) {
                     Notification notif = notificationService.createNotification(
-                        applicantId, null, null, title, message, type, null
+                        applicantId, null, null, title, message, type, null, null, null
                     );
                     System.out.println("DEBUG: Notification created: " + notif);
                     if (notif == null) {
@@ -251,7 +250,7 @@ public class EvaluationService {
                                 Long evaluatorUserId = evaluator.getEvaluatorId();
                                 if (evaluatorUserId != null && notificationService != null) {
                                     notificationService.createNotification(
-                                        null, evaluatorUserId, null, title, message, type, null
+                                        null, evaluatorUserId, null, title, message, type, null, null, null
                                     );
                                 }
                             } catch (Exception ex) {
