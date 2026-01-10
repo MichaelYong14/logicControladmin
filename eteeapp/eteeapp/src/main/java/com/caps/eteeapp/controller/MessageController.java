@@ -204,6 +204,220 @@ public class MessageController {
         return ResponseEntity.ok(chatList);
     }
 
+    @GetMapping("/inbox/evaluator/chat-list")
+    public ResponseEntity<List<Map<String, Object>>> getEvaluatorChatList(@RequestParam Long evaluatorId) {
+        Evaluator evaluator = evaluatorRepository.findById(evaluatorId).orElse(null);
+        if (evaluator == null) {
+            return ResponseEntity.badRequest().body(new ArrayList<>());
+        }
+        List<Message> allMessages = new ArrayList<>();
+        allMessages.addAll(messageService.getEvaluatorInbox(evaluator));
+        allMessages.addAll(messageService.getApplicantEvaluatorConversation(null, evaluator)); // fallback for applicant-initiated
+        allMessages.addAll(messageService.getEvaluatorAdminConversation(evaluator, null)); // fallback for admin-initiated
+
+        // Collect all messages where evaluator is either sender or recipient
+        allMessages = allMessages.stream()
+            .filter(m -> (m.getSenderEvaluator() != null && m.getSenderEvaluator().getEvaluatorId().equals(evaluatorId)) ||
+                         (m.getRecipientEvaluator() != null && m.getRecipientEvaluator().getEvaluatorId().equals(evaluatorId)))
+            .collect(Collectors.toList());
+
+        // Group by conversation partner (applicant or admin)
+        Map<String, List<Message>> conversationMap = new HashMap<>();
+        for (Message m : allMessages) {
+            String key = null;
+            String role = null;
+            String name = null;
+            if (m.getSenderEvaluator() != null && m.getSenderEvaluator().getEvaluatorId().equals(evaluatorId)) {
+                // evaluator is sender, so group by recipient
+                if (m.getRecipientApplicant() != null) {
+                    key = "APPLICANT_" + m.getRecipientApplicant().getApplicantId();
+                    role = "APPLICANT";
+                    name = m.getRecipientApplicant().getFirstName() + " " + m.getRecipientApplicant().getLastName();
+                } else if (m.getRecipientAdmin() != null) {
+                    key = "ADMIN_" + m.getRecipientAdmin().getAdminId();
+                    role = "PROGRAM_ADMIN";
+                    name = m.getRecipientAdmin().getName();
+                }
+            } else {
+                // evaluator is recipient, so group by sender
+                if (m.getSenderApplicant() != null) {
+                    key = "APPLICANT_" + m.getSenderApplicant().getApplicantId();
+                    role = "APPLICANT";
+                    name = m.getSenderApplicant().getFirstName() + " " + m.getSenderApplicant().getLastName();
+                } else if (m.getSenderAdmin() != null) {
+                    key = "ADMIN_" + m.getSenderAdmin().getAdminId();
+                    role = "PROGRAM_ADMIN";
+                    name = m.getSenderAdmin().getName();
+                }
+            }
+            if (key != null) {
+                conversationMap.computeIfAbsent(key, k -> new ArrayList<>()).add(m);
+            }
+        }
+
+        List<Map<String, Object>> chatList = new ArrayList<>();
+        for (Map.Entry<String, List<Message>> entry : conversationMap.entrySet()) {
+            List<Message> messages = entry.getValue();
+            messages.sort(Comparator.comparing(Message::getSentAt).reversed());
+            Message lastMessage = messages.get(0);
+
+            String role = null;
+            String name = null;
+            if (lastMessage.getSenderEvaluator() != null && lastMessage.getSenderEvaluator().getEvaluatorId().equals(evaluatorId)) {
+                if (lastMessage.getRecipientApplicant() != null) {
+                    role = "APPLICANT";
+                    name = lastMessage.getRecipientApplicant().getFirstName() + " " + lastMessage.getRecipientApplicant().getLastName();
+                } else if (lastMessage.getRecipientAdmin() != null) {
+                    role = "PROGRAM_ADMIN";
+                    name = lastMessage.getRecipientAdmin().getName();
+                }
+            } else {
+                if (lastMessage.getSenderApplicant() != null) {
+                    role = "APPLICANT";
+                    name = lastMessage.getSenderApplicant().getFirstName() + " " + lastMessage.getSenderApplicant().getLastName();
+                } else if (lastMessage.getSenderAdmin() != null) {
+                    role = "PROGRAM_ADMIN";
+                    name = lastMessage.getSenderAdmin().getName();
+                }
+            }
+
+            // Unread: any message in this conversation where evaluator is recipient
+            boolean unread = messages.stream().anyMatch(m ->
+                m.getRecipientEvaluator() != null &&
+                m.getRecipientEvaluator().getEvaluatorId().equals(evaluatorId)
+                // && !Boolean.TRUE.equals(m.getRead()) // Uncomment if you add a 'read' field
+            );
+
+            Map<String, Object> chatItem = new HashMap<>();
+            chatItem.put("participantName", name);
+            chatItem.put("participantRole", role);
+            chatItem.put("lastMessageContent", lastMessage.getContent());
+            chatItem.put("lastMessageTimestamp", lastMessage.getSentAt());
+            chatItem.put("unread", unread);
+
+            chatList.add(chatItem);
+        }
+
+        // Sort by last message timestamp descending
+        chatList.sort((a, b) -> {
+            Object t1 = a.get("lastMessageTimestamp");
+            Object t2 = b.get("lastMessageTimestamp");
+            if (t1 == null && t2 == null) return 0;
+            if (t1 == null) return 1;
+            if (t2 == null) return -1;
+            return ((Comparable) t2).compareTo(t1);
+        });
+
+        return ResponseEntity.ok(chatList);
+    }
+
+    @GetMapping("/inbox/admin/chat-list")
+    public ResponseEntity<List<Map<String, Object>>> getAdminChatList(@RequestParam Long adminId) {
+        ProgramAdmin admin = programAdminRepository.findById(adminId).orElse(null);
+        if (admin == null) {
+            return ResponseEntity.badRequest().body(new ArrayList<>());
+        }
+        List<Message> allMessages = new ArrayList<>();
+        allMessages.addAll(messageService.getAdminInbox(admin));
+        allMessages.addAll(messageService.getApplicantAdminConversation(null, admin)); // fallback for applicant-initiated
+        allMessages.addAll(messageService.getEvaluatorAdminConversation(null, admin)); // fallback for evaluator-initiated
+
+        // Collect all messages where admin is either sender or recipient
+        allMessages = allMessages.stream()
+            .filter(m -> (m.getSenderAdmin() != null && m.getSenderAdmin().getAdminId().equals(adminId)) ||
+                         (m.getRecipientAdmin() != null && m.getRecipientAdmin().getAdminId().equals(adminId)))
+            .collect(Collectors.toList());
+
+        // Group by conversation partner (applicant or evaluator)
+        Map<String, List<Message>> conversationMap = new HashMap<>();
+        for (Message m : allMessages) {
+            String key = null;
+            String role = null;
+            String name = null;
+            if (m.getSenderAdmin() != null && m.getSenderAdmin().getAdminId().equals(adminId)) {
+                // admin is sender, so group by recipient
+                if (m.getRecipientApplicant() != null) {
+                    key = "APPLICANT_" + m.getRecipientApplicant().getApplicantId();
+                    role = "APPLICANT";
+                    name = m.getRecipientApplicant().getFirstName() + " " + m.getRecipientApplicant().getLastName();
+                } else if (m.getRecipientEvaluator() != null) {
+                    key = "EVALUATOR_" + m.getRecipientEvaluator().getEvaluatorId();
+                    role = "EVALUATOR";
+                    name = m.getRecipientEvaluator().getName();
+                }
+            } else {
+                // admin is recipient, so group by sender
+                if (m.getSenderApplicant() != null) {
+                    key = "APPLICANT_" + m.getSenderApplicant().getApplicantId();
+                    role = "APPLICANT";
+                    name = m.getSenderApplicant().getFirstName() + " " + m.getSenderApplicant().getLastName();
+                } else if (m.getSenderEvaluator() != null) {
+                    key = "EVALUATOR_" + m.getSenderEvaluator().getEvaluatorId();
+                    role = "EVALUATOR";
+                    name = m.getSenderEvaluator().getName();
+                }
+            }
+            if (key != null) {
+                conversationMap.computeIfAbsent(key, k -> new ArrayList<>()).add(m);
+            }
+        }
+
+        List<Map<String, Object>> chatList = new ArrayList<>();
+        for (Map.Entry<String, List<Message>> entry : conversationMap.entrySet()) {
+            List<Message> messages = entry.getValue();
+            messages.sort(Comparator.comparing(Message::getSentAt).reversed());
+            Message lastMessage = messages.get(0);
+
+            String role = null;
+            String name = null;
+            if (lastMessage.getSenderAdmin() != null && lastMessage.getSenderAdmin().getAdminId().equals(adminId)) {
+                if (lastMessage.getRecipientApplicant() != null) {
+                    role = "APPLICANT";
+                    name = lastMessage.getRecipientApplicant().getFirstName() + " " + lastMessage.getRecipientApplicant().getLastName();
+                } else if (lastMessage.getRecipientEvaluator() != null) {
+                    role = "EVALUATOR";
+                    name = lastMessage.getRecipientEvaluator().getName();
+                }
+            } else {
+                if (lastMessage.getSenderApplicant() != null) {
+                    role = "APPLICANT";
+                    name = lastMessage.getSenderApplicant().getFirstName() + " " + lastMessage.getSenderApplicant().getLastName();
+                } else if (lastMessage.getSenderEvaluator() != null) {
+                    role = "EVALUATOR";
+                    name = lastMessage.getSenderEvaluator().getName();
+                }
+            }
+
+            // Unread: any message in this conversation where admin is recipient
+            boolean unread = messages.stream().anyMatch(m ->
+                m.getRecipientAdmin() != null &&
+                m.getRecipientAdmin().getAdminId().equals(adminId)
+                // && !Boolean.TRUE.equals(m.getRead()) // Uncomment if you add a 'read' field
+            );
+
+            Map<String, Object> chatItem = new HashMap<>();
+            chatItem.put("participantName", name);
+            chatItem.put("participantRole", role);
+            chatItem.put("lastMessageContent", lastMessage.getContent());
+            chatItem.put("lastMessageTimestamp", lastMessage.getSentAt());
+            chatItem.put("unread", unread);
+
+            chatList.add(chatItem);
+        }
+
+        // Sort by last message timestamp descending
+        chatList.sort((a, b) -> {
+            Object t1 = a.get("lastMessageTimestamp");
+            Object t2 = b.get("lastMessageTimestamp");
+            if (t1 == null && t2 == null) return 0;
+            if (t1 == null) return 1;
+            if (t2 == null) return -1;
+            return ((Comparable) t2).compareTo(t1);
+        });
+
+        return ResponseEntity.ok(chatList);
+    }
+
     // To use this endpoint in Postman:
 
     // 1. Set the method to GET.
@@ -214,4 +428,20 @@ public class MessageController {
     // 3. No request body is needed.
     // 4. Click "Send".
     // 5. The response will be a JSON array of messages between the applicant and the program admin.
+
+    // To test the evaluator chat list endpoint in Postman:
+
+    // 1. Set the method to GET.
+    // 2. Use the URL (replace with your actual port and evaluatorId):
+    //    http://localhost:{port}/api/messages/inbox/evaluator/chat-list?evaluatorId={evaluatorId}
+    //    Example:
+    //    http://localhost:8080/api/messages/inbox/evaluator/chat-list?evaluatorId=1
+    // 3. No request body is needed.
+    // 4. Click "Send".
+    // 5. The response will be a JSON array of chat list items for the evaluator, each containing:
+    //    - participantName
+    //    - participantRole
+    //    - lastMessageContent
+    //    - lastMessageTimestamp
+    //    - unread
 }

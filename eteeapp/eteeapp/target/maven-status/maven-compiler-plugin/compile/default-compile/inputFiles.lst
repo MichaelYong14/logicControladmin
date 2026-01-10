@@ -11,6 +11,7 @@ C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\controller\DocumentController.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\controller\EvaluationController.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\controller\EvaluatorController.java
+C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\controller\MessageController.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\controller\NotificationController.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\controller\ProgramAdminController.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\controller\SemesterController.java
@@ -34,6 +35,7 @@ C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\EvaluationNotification.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\Evaluator.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\FileResponse.java
+C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\Message.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\Notification.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\ProgramAdmin.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\model\Semester.java
@@ -51,6 +53,7 @@ C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\EvaluationNotificationRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\EvaluationRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\EvaluatorRepository.java
+C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\MessageRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\NotificationRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\ProgramAdminRepository.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\repository\SemesterRepository.java
@@ -70,6 +73,7 @@ C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\EvaluationService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\EvaluatorService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\FileStorageService.java
+C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\MessageService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\NotificationService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\ProgramAdminService.java
 C:\Users\Michael Yong\Desktop\deploy\logicControladmin\eteeapp\eteeapp\src\main\java\com\caps\eteeapp\service\SemesterService.java
