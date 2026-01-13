@@ -41,6 +41,35 @@ public class MessageController {
 
     @PostMapping("/send")
     public Message sendMessage(@RequestBody Message message) {
+        // Resolve sender entities
+        if (message.getSenderAdmin() != null && message.getSenderAdmin().getAdminId() != null) {
+            ProgramAdmin admin = programAdminRepository.findById(message.getSenderAdmin().getAdminId()).orElse(null);
+            message.setSenderAdmin(admin);
+        }
+        if (message.getSenderApplicant() != null && message.getSenderApplicant().getApplicantId() != null) {
+            Applicant applicant = applicantRepository.findById(message.getSenderApplicant().getApplicantId()).orElse(null);
+            message.setSenderApplicant(applicant);
+        }
+        if (message.getSenderEvaluator() != null && message.getSenderEvaluator().getEvaluatorId() != null) {
+            Evaluator evaluator = evaluatorRepository.findById(message.getSenderEvaluator().getEvaluatorId()).orElse(null);
+            message.setSenderEvaluator(evaluator);
+        }
+
+        // Resolve recipient entities
+        if (message.getRecipientAdmin() != null && message.getRecipientAdmin().getAdminId() != null) {
+            ProgramAdmin admin = programAdminRepository.findById(message.getRecipientAdmin().getAdminId()).orElse(null);
+            message.setRecipientAdmin(admin);
+        }
+        if (message.getRecipientApplicant() != null && message.getRecipientApplicant().getApplicantId() != null) {
+            Applicant applicant = applicantRepository.findById(message.getRecipientApplicant().getApplicantId()).orElse(null);
+            message.setRecipientApplicant(applicant);
+        }
+        if (message.getRecipientEvaluator() != null && message.getRecipientEvaluator().getEvaluatorId() != null) {
+            Evaluator evaluator = evaluatorRepository.findById(message.getRecipientEvaluator().getEvaluatorId()).orElse(null);
+            message.setRecipientEvaluator(evaluator);
+        }
+
+        // Now save with managed entities
         return messageService.sendMessage(message);
     }
 
