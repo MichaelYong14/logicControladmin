@@ -120,16 +120,19 @@ public class MessageController {
             String key = null;
             String role = null;
             String name = null;
+            Long participantId = null;
             if (m.getSenderApplicant() != null && m.getSenderApplicant().getApplicantId().equals(applicantId)) {
                 // applicant is sender, so group by recipient
                 if (m.getRecipientEvaluator() != null) {
                     key = "EVALUATOR_" + m.getRecipientEvaluator().getEvaluatorId();
                     role = "EVALUATOR";
                     name = m.getRecipientEvaluator().getName();
+                    participantId = m.getRecipientEvaluator().getEvaluatorId();
                 } else if (m.getRecipientAdmin() != null) {
                     key = "ADMIN_" + m.getRecipientAdmin().getAdminId();
                     role = "PROGRAM_ADMIN";
                     name = m.getRecipientAdmin().getName();
+                    participantId = m.getRecipientAdmin().getAdminId();
                 }
             } else {
                 // applicant is recipient, so group by sender
@@ -137,10 +140,12 @@ public class MessageController {
                     key = "EVALUATOR_" + m.getSenderEvaluator().getEvaluatorId();
                     role = "EVALUATOR";
                     name = m.getSenderEvaluator().getName();
+                    participantId = m.getSenderEvaluator().getEvaluatorId();
                 } else if (m.getSenderAdmin() != null) {
                     key = "ADMIN_" + m.getSenderAdmin().getAdminId();
                     role = "PROGRAM_ADMIN";
                     name = m.getSenderAdmin().getName();
+                    participantId = m.getSenderAdmin().getAdminId();
                 }
             }
             if (key != null) {
@@ -156,32 +161,37 @@ public class MessageController {
 
             String role = null;
             String name = null;
+            Long participantId = null;
             if (lastMessage.getSenderApplicant() != null && lastMessage.getSenderApplicant().getApplicantId().equals(applicantId)) {
                 if (lastMessage.getRecipientEvaluator() != null) {
                     role = "EVALUATOR";
                     name = lastMessage.getRecipientEvaluator().getName();
+                    participantId = lastMessage.getRecipientEvaluator().getEvaluatorId();
                 } else if (lastMessage.getRecipientAdmin() != null) {
                     role = "PROGRAM_ADMIN";
                     name = lastMessage.getRecipientAdmin().getName();
+                    participantId = lastMessage.getRecipientAdmin().getAdminId();
                 }
             } else {
                 if (lastMessage.getSenderEvaluator() != null) {
                     role = "EVALUATOR";
                     name = lastMessage.getSenderEvaluator().getName();
+                    participantId = lastMessage.getSenderEvaluator().getEvaluatorId();
                 } else if (lastMessage.getSenderAdmin() != null) {
                     role = "PROGRAM_ADMIN";
                     name = lastMessage.getSenderAdmin().getName();
+                    participantId = lastMessage.getSenderAdmin().getAdminId();
                 }
             }
 
-            // Unread: any message in this conversation where applicant is recipient and (optionally) you can add a 'read' flag to Message
             boolean unread = messages.stream().anyMatch(m ->
                 m.getRecipientApplicant() != null &&
                 m.getRecipientApplicant().getApplicantId().equals(applicantId)
-                // && !Boolean.TRUE.equals(m.getRead()) // Uncomment if you add a 'read' field
+                // && !Boolean.TRUE.equals(m.getRead())
             );
 
             Map<String, Object> chatItem = new HashMap<>();
+            chatItem.put("participantId", participantId);
             chatItem.put("participantName", name);
             chatItem.put("participantRole", role);
             chatItem.put("lastMessageContent", lastMessage.getContent());
@@ -227,16 +237,19 @@ public class MessageController {
             String key = null;
             String role = null;
             String name = null;
+            Long participantId = null;
             if (m.getSenderEvaluator() != null && m.getSenderEvaluator().getEvaluatorId().equals(evaluatorId)) {
                 // evaluator is sender, so group by recipient
                 if (m.getRecipientApplicant() != null) {
                     key = "APPLICANT_" + m.getRecipientApplicant().getApplicantId();
                     role = "APPLICANT";
                     name = m.getRecipientApplicant().getFirstName() + " " + m.getRecipientApplicant().getLastName();
+                    participantId = m.getRecipientApplicant().getApplicantId();
                 } else if (m.getRecipientAdmin() != null) {
                     key = "ADMIN_" + m.getRecipientAdmin().getAdminId();
                     role = "PROGRAM_ADMIN";
                     name = m.getRecipientAdmin().getName();
+                    participantId = m.getRecipientAdmin().getAdminId();
                 }
             } else {
                 // evaluator is recipient, so group by sender
@@ -244,10 +257,12 @@ public class MessageController {
                     key = "APPLICANT_" + m.getSenderApplicant().getApplicantId();
                     role = "APPLICANT";
                     name = m.getSenderApplicant().getFirstName() + " " + m.getSenderApplicant().getLastName();
+                    participantId = m.getSenderApplicant().getApplicantId();
                 } else if (m.getSenderAdmin() != null) {
                     key = "ADMIN_" + m.getSenderAdmin().getAdminId();
                     role = "PROGRAM_ADMIN";
                     name = m.getSenderAdmin().getName();
+                    participantId = m.getSenderAdmin().getAdminId();
                 }
             }
             if (key != null) {
@@ -263,21 +278,26 @@ public class MessageController {
 
             String role = null;
             String name = null;
+            Long participantId = null;
             if (lastMessage.getSenderEvaluator() != null && lastMessage.getSenderEvaluator().getEvaluatorId().equals(evaluatorId)) {
                 if (lastMessage.getRecipientApplicant() != null) {
                     role = "APPLICANT";
                     name = lastMessage.getRecipientApplicant().getFirstName() + " " + lastMessage.getRecipientApplicant().getLastName();
+                    participantId = lastMessage.getRecipientApplicant().getApplicantId();
                 } else if (lastMessage.getRecipientAdmin() != null) {
                     role = "PROGRAM_ADMIN";
                     name = lastMessage.getRecipientAdmin().getName();
+                    participantId = lastMessage.getRecipientAdmin().getAdminId();
                 }
             } else {
                 if (lastMessage.getSenderApplicant() != null) {
                     role = "APPLICANT";
                     name = lastMessage.getSenderApplicant().getFirstName() + " " + lastMessage.getSenderApplicant().getLastName();
+                    participantId = lastMessage.getSenderApplicant().getApplicantId();
                 } else if (lastMessage.getSenderAdmin() != null) {
                     role = "PROGRAM_ADMIN";
                     name = lastMessage.getSenderAdmin().getName();
+                    participantId = lastMessage.getSenderAdmin().getAdminId();
                 }
             }
 
@@ -289,6 +309,7 @@ public class MessageController {
             );
 
             Map<String, Object> chatItem = new HashMap<>();
+            chatItem.put("participantId", participantId);
             chatItem.put("participantName", name);
             chatItem.put("participantRole", role);
             chatItem.put("lastMessageContent", lastMessage.getContent());
