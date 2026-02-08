@@ -130,6 +130,26 @@ public class EvaluationService {
                 } else {
                     System.out.println("DEBUG: applicantId or notificationService is null, notification not sent.");
                 }
+
+                // Send notification to Program Admin
+                System.out.println("DEBUG: Attempting to send notification to Program Admin with ID 1");
+                String adminTitle = "Application Approved";
+                String adminMessage = String.format(
+                    "Application of applicant %s to course %s has been approved by %s. Please accept student",
+                    firstName, courseName, evaluatorName
+                );
+                System.out.println("DEBUG: Admin notification message: " + adminMessage);
+                if (notificationService != null) {
+                    Notification adminNotif = notificationService.createNotification(
+                        null, null, 1L, adminTitle, adminMessage, Notification.NotificationType.INFO, null, "APPROVAL", null
+                    );
+                    System.out.println("DEBUG: Admin notification created: " + adminNotif);
+                    if (adminNotif == null) {
+                        System.out.println("DEBUG: Admin notification returned null. Program Admin with ID 1 may not exist in DB.");
+                    }
+                } else {
+                    System.out.println("DEBUG: notificationService is null for admin notification.");
+                }
             }
         } catch (Exception ex) {
             System.err.println("Failed to create evaluation status notification: " + ex.getMessage());

@@ -25,6 +25,9 @@ public class AcceptedApplicantService {
     @Autowired
     private CourseRepository courseRepository;
 
+    @Autowired
+    private NotificationService notificationService;
+
     public AcceptedApplicant acceptApplicant(Long applicantId, Long finalCourseId, String remarks) {
         Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
         if (!applicantOpt.isPresent()) {
@@ -48,7 +51,29 @@ public class AcceptedApplicantService {
         acceptedApplicant.setAcceptanceDate(new Date());
         acceptedApplicant.setRemarks(remarks);
 
-        return acceptedApplicantRepository.save(acceptedApplicant);
+        AcceptedApplicant savedApplicant = acceptedApplicantRepository.save(acceptedApplicant);
+
+        // Create notification for accepted applicant
+        String notificationTitle = "Application Accepted";
+        String notificationMessage = String.format(
+            "Congratulations! You have been accepted for %s. Remarks: %s",
+            courseOpt.get().getCourseName(),
+            remarks != null && !remarks.isEmpty() ? remarks : "No remarks provided"
+        );
+
+        notificationService.createNotification(
+            applicantId,
+            null,
+            null,
+            notificationTitle,
+            notificationMessage,
+            com.caps.eteeapp.model.Notification.NotificationType.SUCCESS,
+            null,
+            "ACCEPTANCE",
+            null
+        );
+
+        return savedApplicant;
     }
 
     public List<AcceptedApplicant> getAllAcceptedApplicants() {
