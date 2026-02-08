@@ -479,4 +479,34 @@ public class MessageController {
     //    - lastMessageContent
     //    - lastMessageTimestamp
     //    - unread
+
+    @GetMapping("/evaluators/all")
+    public ResponseEntity<List<Map<String, Object>>> getAllEvaluators() {
+        List<Evaluator> evaluators = evaluatorRepository.findAll();
+        List<Map<String, Object>> evaluatorList = evaluators.stream()
+            .map(evaluator -> {
+                Map<String, Object> evaluatorData = new HashMap<>();
+                evaluatorData.put("evaluatorId", evaluator.getEvaluatorId());
+                evaluatorData.put("name", evaluator.getName());
+                evaluatorData.put("email", evaluator.getEmail());
+                return evaluatorData;
+            })
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(evaluatorList);
+    }
+
+    @GetMapping("/program-admins/all")
+    public ResponseEntity<List<Map<String, Object>>> getAllProgramAdmins() {
+        List<ProgramAdmin> admins = programAdminRepository.findAll();
+        List<Map<String, Object>> adminList = admins.stream()
+            .map(admin -> {
+                Map<String, Object> adminData = new HashMap<>();
+                adminData.put("adminId", admin.getAdminId());
+                adminData.put("name", admin.getFirstName() + " " + admin.getLastName());
+                adminData.put("email", admin.getEmail());
+                return adminData;
+            })
+            .collect(Collectors.toList());
+        return ResponseEntity.ok(adminList);
+    }
 }
