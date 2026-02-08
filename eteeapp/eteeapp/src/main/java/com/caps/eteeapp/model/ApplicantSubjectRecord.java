@@ -50,6 +50,6 @@ public class ApplicantSubjectRecord {
     private RecordStatus status = RecordStatus.PENDING;
 
     public enum RecordStatus {
-        PENDING, APPROVED, REJECTED
+        PENDING, APPROVED, REJECTED, FOR_ENROLLMENT
     }
 }
