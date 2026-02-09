@@ -89,9 +89,9 @@ public class ApplicantSubjectRecordService {
         return cleanRecord;
     }
 
-    public ApplicantSubjectRecord updateSubjectRecord(Long recordId, String grade, 
+    public ApplicantSubjectRecord updateSubjectRecord(Long recordId, String grade,
             String processOfAccreditation, String substantiveBasis, String status) {
-        
+
         ApplicantSubjectRecord record = applicantSubjectRecordRepository.findById(recordId)
                 .orElseThrow(() -> new RuntimeException("Subject record not found with id " + recordId));
 
@@ -105,34 +105,8 @@ public class ApplicantSubjectRecordService {
             record.setSubstantiveBasis(substantiveBasis);
         }
         if (status != null) {
-            ApplicantSubjectRecord.RecordStatus oldStatus = record.getStatus();
             ApplicantSubjectRecord.RecordStatus newStatus = ApplicantSubjectRecord.RecordStatus.valueOf(status.toUpperCase());
             record.setStatus(newStatus);
-
-            // If status changed, create a notification for the applicant
-            if (oldStatus != null && newStatus != null && oldStatus != newStatus) {
-                try {
-                    Long applicantId = record.getApplicant() != null ? record.getApplicant().getApplicantId() : null;
-                    if (applicantId != null && notificationService != null) {
-                        String subjectName = record.getSubject() != null ?
-                                (record.getSubject().getSubjectCode() + " - " + record.getSubject().getDescriptiveTitle()) : "Subject";
-                        String title = "Subject Status Updated";
-                        String message = String.format("%s status changed from %s to %s.", subjectName, oldStatus, newStatus);
-                        Notification.NotificationType type = Notification.NotificationType.INFO;
-                        if (newStatus == ApplicantSubjectRecord.RecordStatus.APPROVED) type = Notification.NotificationType.SUCCESS;
-                        else if (newStatus == ApplicantSubjectRecord.RecordStatus.REJECTED) type = Notification.NotificationType.ERROR;
-                        else if (newStatus == ApplicantSubjectRecord.RecordStatus.PENDING) type = Notification.NotificationType.WARNING;
-
-                        // No clientTempId when server-created (originating from backend flow)
-                        notificationService.createNotification(
-                            applicantId, null, null, title, message, type, null, null, null
-                        );
-                    }
-                } catch (Exception ex) {
-                    // Don't block save on notification failure
-                    System.err.println("Failed to create notification: " + ex.getMessage());
-                }
-            }
         }
 
         return applicantSubjectRecordRepository.save(record);
