@@ -502,7 +502,7 @@ public class MessageController {
             .map(admin -> {
                 Map<String, Object> adminData = new HashMap<>();
                 adminData.put("adminId", admin.getAdminId());
-                adminData.put("name", admin.getFirstName() + " " + admin.getLastName());
+                adminData.put("name", admin.getName());
                 adminData.put("email", admin.getEmail());
                 return adminData;
             })
