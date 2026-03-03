@@ -272,4 +272,66 @@ public class ApplicantController {
             return ResponseEntity.status(500).body(response);
         }
     }
+
+    @GetMapping("/{applicantId}/has-submitted")
+    public ResponseEntity<Map<String, Object>> getHasSubmitted(@PathVariable Long applicantId) {
+        Optional<Boolean> result = applicantService.getHasSubmitted(applicantId);
+        if (result.isPresent()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("applicantId", applicantId);
+            response.put("hasSubmitted", result.get());
+            return ResponseEntity.ok(response);
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Applicant not found");
+        return ResponseEntity.status(404).body(response);
+    }
+
+    @PatchMapping("/{applicantId}/has-submitted")
+    public ResponseEntity<Map<String, String>> updateHasSubmitted(
+            @PathVariable Long applicantId,
+            @RequestParam boolean hasSubmitted) {
+
+        Map<String, String> response = new HashMap<>();
+        boolean updated = applicantService.updateHasSubmitted(applicantId, hasSubmitted);
+
+        if (updated) {
+            response.put("message", "hasSubmitted updated successfully");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("message", "Applicant not found");
+            return ResponseEntity.status(404).body(response);
+        }
+    }
+
+    @GetMapping("/{applicantId}/accreditation-status")
+    public ResponseEntity<Map<String, Object>> getAccreditationStatus(@PathVariable Long applicantId) {
+        Optional<Applicant.AccreditationStatus> result = applicantService.getAccreditationStatus(applicantId);
+        if (result.isPresent()) {
+            Map<String, Object> response = new HashMap<>();
+            response.put("applicantId", applicantId);
+            response.put("accreditationStatus", result.get());
+            return ResponseEntity.ok(response);
+        }
+        Map<String, Object> response = new HashMap<>();
+        response.put("message", "Applicant not found");
+        return ResponseEntity.status(404).body(response);
+    }
+
+    @PatchMapping("/{applicantId}/accreditation-status")
+    public ResponseEntity<Map<String, String>> updateAccreditationStatus(
+            @PathVariable Long applicantId,
+            @RequestParam Applicant.AccreditationStatus accreditationStatus) {
+
+        Map<String, String> response = new HashMap<>();
+        boolean updated = applicantService.updateAccreditationStatus(applicantId, accreditationStatus);
+
+        if (updated) {
+            response.put("message", "Accreditation status updated successfully");
+            return ResponseEntity.ok(response);
+        } else {
+            response.put("message", "Applicant not found");
+            return ResponseEntity.status(404).body(response);
+        }
+    }
 }

@@ -55,8 +55,15 @@ public class Applicant {
     @Temporal(TemporalType.DATE)
     private Date dateOfBirth;
 
+    @Column(columnDefinition = "boolean default false")
+    private boolean hasSubmitted;
+
     @Enumerated(EnumType.STRING)
     private Gender gender;
+
+    @Enumerated(EnumType.STRING)
+    @Column(columnDefinition = "varchar(255) default 'PENDING'")
+    private AccreditationStatus accreditationStatus;
 
     @OneToMany(mappedBy = "applicant", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
@@ -64,5 +71,15 @@ public class Applicant {
 
     public enum Gender {
         MALE, FEMALE, OTHER
+    }
+
+    public enum AccreditationStatus {
+        PENDING,
+        UNDER_REVIEW,
+        DOCUMENTS_REQUIRED,
+        APPROVED,
+        REJECTED,
+        CONDITIONAL,
+        ON_HOLD
     }
 }

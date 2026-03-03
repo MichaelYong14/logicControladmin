@@ -33,6 +33,7 @@ com\caps\eteeapp\service\ProgramAdminService.class
 com\caps\eteeapp\model\ApplicantSubjectRecord$RecordStatus.class
 com\caps\eteeapp\EteeappApplication.class
 com\caps\eteeapp\exception\FileStorageException.class
+com\caps\eteeapp\model\Applicant$AccreditationStatus.class
 com\caps\eteeapp\service\CurriculumService.class
 com\caps\eteeapp\service\EmailService$EmailSendResult.class
 com\caps\eteeapp\controller\ProgramAdminController.class

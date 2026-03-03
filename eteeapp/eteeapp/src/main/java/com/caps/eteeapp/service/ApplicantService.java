@@ -346,4 +346,50 @@ public class ApplicantService {
             throw new RuntimeException("Failed to create applicant curriculum record", e);
         }
     }
+
+    public boolean updateHasSubmitted(Long applicantId, boolean hasSubmitted) {
+        logger.info("=== SERVICE: updateHasSubmitted START ===");
+        logger.info("Updating hasSubmitted to {} for applicantId: {}", hasSubmitted, applicantId);
+
+        Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
+        if (applicantOpt.isEmpty()) {
+            logger.warn("Applicant not found for ID: {}", applicantId);
+            return false;
+        }
+
+        Applicant applicant = applicantOpt.get();
+        applicant.setHasSubmitted(hasSubmitted);
+        applicantRepository.save(applicant);
+
+        logger.info("=== SERVICE: updateHasSubmitted END - SUCCESS ===");
+        return true;
+    }
+
+    public Optional<Boolean> getHasSubmitted(Long applicantId) {
+        return applicantRepository.findById(applicantId)
+                .map(Applicant::isHasSubmitted);
+    }
+
+    public boolean updateAccreditationStatus(Long applicantId, Applicant.AccreditationStatus accreditationStatus) {
+        logger.info("=== SERVICE: updateAccreditationStatus START ===");
+        logger.info("Updating accreditationStatus to {} for applicantId: {}", accreditationStatus, applicantId);
+
+        Optional<Applicant> applicantOpt = applicantRepository.findById(applicantId);
+        if (applicantOpt.isEmpty()) {
+            logger.warn("Applicant not found for ID: {}", applicantId);
+            return false;
+        }
+
+        Applicant applicant = applicantOpt.get();
+        applicant.setAccreditationStatus(accreditationStatus);
+        applicantRepository.save(applicant);
+
+        logger.info("=== SERVICE: updateAccreditationStatus END - SUCCESS ===");
+        return true;
+    }
+
+    public Optional<Applicant.AccreditationStatus> getAccreditationStatus(Long applicantId) {
+        return applicantRepository.findById(applicantId)
+                .map(Applicant::getAccreditationStatus);
+    }
 }
